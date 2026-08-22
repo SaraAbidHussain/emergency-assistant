@@ -13,6 +13,8 @@ from app.models.schemas import (
     TimelineEntry,
 )
 from app.repository import session_store
+from app.services import ai_service
+from app.services.safety_rule_engine import decide_severity
 
 
 def classify_emergency(request: ClassifyRequest) -> ClassifyResponse:
@@ -31,23 +33,43 @@ def classify_emergency(request: ClassifyRequest) -> ClassifyResponse:
 
 def record_event(request: EventRequest) -> EventResponse:
     """
-    Logs an event against the user's session, bumps a mock severity,
-    and returns the event id + current severity per the contract.
-    Real rule-engine wiring (decide_severity) comes in Step 2.3.
+    Logs an event against the user's session:
+    1. Pulls a description out of the payload (if any) and sends it to
+       classify_emergency() (ai_service.py — stubbed until Member 3 wires
+       up the real Qwen call).
+    2. Computes minutes_since_last_response from the session's tracked
+       last_response_at.
+    3. Passes both into decide_severity() (the deterministic rule engine)
+       to get the final severity — the rule engine has the final say,
+       not the AI hint alone.
+    4. Updates the session and timeline, returns the contract shape.
     """
     session = session_store.get_or_create_session(request.user_id)
-
-    # Mock severity bump logic — replaced by the real rule engine later.
-    severity_map = {
-        "trigger": 3,
-        "answer": session.severity,
-        "escalation": 4,
-        "location_update": session.severity,
-    }
-    session.severity = severity_map.get(request.type, session.severity)
-    session.active = True
-
     now = datetime.now(timezone.utc)
+
+    description = request.payload.get("description", "")
+    classification = ai_service.classify_emergency(description)
+
+    if session.last_response_at is None:
+        minutes_since_last_response = 0.0
+    else:
+        elapsed_seconds = (now - session.last_response_at).total_seconds()
+        minutes_since_last_response = elapsed_seconds / 60.0
+
+    final_severity = decide_severity(
+        ai_severity_hint=classification["severity_hint"],
+        minutes_since_last_response=minutes_since_last_response,
+        event_type=request.type,
+    )
+
+    session.severity = final_severity
+    session.active = True
+    session.type = classification.get("emergency_type", session.type)
+
+    # "answer" events count as the user actively responding — reset the clock.
+    if request.type == "answer":
+        session.last_response_at = now
+
     entry = TimelineEntry(timestamp=now, event=f"{request.type} received")
     session.timeline.append(entry)
     session_store.save_session(session)
