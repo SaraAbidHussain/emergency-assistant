@@ -74,3 +74,7 @@ class EmergencySession(BaseModel):
     status: Literal["unresponsive", "responding", "resolved"] = "responding"
     location: Optional[Location] = None
     timeline: list[TimelineEntry] = Field(default_factory=list)
+    # Timestamp of the last event where the user actively responded
+    # (e.g. an "answer" event). Used by the safety rule engine to compute
+    # minutes_since_last_response. None means "no response tracked yet".
+    last_response_at: Optional[datetime] = None
