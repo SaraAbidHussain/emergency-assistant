@@ -51,6 +51,10 @@ class StatusResponse(BaseModel):
     status: Literal["unresponsive", "responding", "resolved"]
     location: Location
     timeline: list[TimelineEntry]
+    # Additive field, not in the original CONTRACT.md shape — a plain-text
+    # one-paragraph summary for responders/demo UI. Safe to ignore for any
+    # consumer that only reads the original contract fields.
+    summary: str
 
 
 # ---------- POST /emergency/{user_id}/escalate ----------
