@@ -81,11 +81,40 @@ def record_event(request: EventRequest) -> EventResponse:
     )
 
 
+def _build_summary(session) -> str:
+    """
+    Plain string formatting, no AI call — more reliable for a live demo
+    than relying on another model call on the status-check hot path.
+    """
+    severity_labels = {1: "minor", 2: "moderate", 3: "serious", 4: "critical"}
+    severity_word = severity_labels.get(session.severity, "unknown")
+    emergency_type = session.type if session.type != "unknown" else "unspecified"
+
+    action_count = len(session.timeline)
+    if action_count == 0:
+        actions_text = "No actions have been logged yet."
+    elif action_count == 1:
+        actions_text = "1 action has been logged so far."
+    else:
+        actions_text = f"{action_count} actions have been logged so far."
+
+    last_event_text = ""
+    if session.timeline:
+        last_event_text = f" Most recent: {session.timeline[-1].event}."
+
+    return (
+        f"User is experiencing a {severity_word} ({session.severity}/4) "
+        f"{emergency_type} emergency. Current status: {session.status}. "
+        f"{actions_text}{last_event_text}"
+    )
+
+
 def get_status(user_id: str) -> StatusResponse:
     """
-    Returns realistic mock status data. If no session exists yet for this
-    user_id, we create one so the endpoint still returns a valid shape
-    instead of a 404 — matches "return realistic mock data" from Step 2.1.
+    Returns realistic mock status data plus a generated summary. If no
+    session exists yet for this user_id, we create one so the endpoint
+    still returns a valid shape instead of a 404 — matches "return
+    realistic mock data" from Step 2.1.
     """
     session = session_store.get_or_create_session(user_id)
 
@@ -106,6 +135,7 @@ def get_status(user_id: str) -> StatusResponse:
         status=session.status,
         location=session.location,
         timeline=session.timeline,
+        summary=_build_summary(session),
     )
 
 
