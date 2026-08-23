@@ -6,19 +6,16 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from app.hospitals import find_nearby_hospitals
-from app.notifications import notify_trusted_contacts
+from app.routers.emergency import router as emergency_router
 
-app = FastAPI(title="Emergency Assistant Location Service")
+app = FastAPI(title="Emergency Assistant Service")
+app.include_router(emergency_router)
 
-# Store the latest known location per user_id. This is intentionally a dict now so it
-# can be replaced later with Redis without changing the API contract or call sites.
+# Shared in-memory stores used by the realtime-infra flow.
+# These are intentionally simple dict/set structures so they can later be swapped for
+# Redis without changing the API layer.
 latest_locations: dict[str, dict[str, Any]] = {}
-
-# Each user_id can have multiple dashboard clients subscribed for live updates.
 subscribers: defaultdict[str, set[WebSocket]] = defaultdict(set)
-
-# Trusted contacts are kept in-memory for the demo service and can later be backed by Redis.
 trusted_contacts: dict[str, list[str]] = {
     "user-123": ["demo-contact-1", "demo-contact-2"],
 }
@@ -26,6 +23,15 @@ trusted_contacts: dict[str, list[str]] = {
 
 class ContactAddRequest(BaseModel):
     contact_id: str
+
+
+class EscalateRequest(BaseModel):
+    reason: str
+
+
+@app.get("/health")
+async def healthcheck() -> dict[str, str]:
+    return {"status": "ok"}
 
 
 @app.post("/contacts/{user_id}/add")
@@ -45,72 +51,6 @@ async def get_contacts(user_id: str) -> dict[str, Any]:
     return {"user_id": user_id, "contacts": trusted_contacts.get(user_id, [])}
 
 
-class EscalateRequest(BaseModel):
-    reason: str
-
-
-@app.post("/emergency/{user_id}/escalate")
-async def escalate(user_id: str, payload: EscalateRequest) -> dict[str, Any]:
-    if not payload.reason or not payload.reason.strip():
-        raise HTTPException(status_code=400, detail="reason is required")
-
-    location = latest_locations.get(user_id, {"lat": 0.0, "lng": 0.0})
-    notified = notify_trusted_contacts(
-        user_id=user_id,
-        severity=3,
-        emergency_type="injury",
-        location=location,
-    )
-
-    return {"escalated": True, "contacts_notified": notified}
-
-
-@app.get("/emergency/{user_id}/status")
-async def emergency_status(user_id: str) -> dict[str, Any]:
-    location = latest_locations.get(user_id, {"lat": 0.0, "lng": 0.0})
-    emergency_type = "injury"
-    status = "responding"
-    severity = 3
-
-    return {
-        "active": True,
-        "severity": severity,
-        "type": emergency_type,
-        "status": status,
-        "location": {"lat": location.get("lat", 0.0), "lng": location.get("lng", 0.0)},
-        "timeline": [
-            {"timestamp": "2026-08-24T12:00:00Z", "event": "Emergency triggered"},
-            {"timestamp": "2026-08-24T12:00:10Z", "event": "Escalation sent"},
-        ],
-        "nearby_help": find_nearby_hospitals(
-            float(location.get("lat", 0.0)),
-            float(location.get("lng", 0.0)),
-            emergency_type,
-        ),
-    }
-
-
-async def broadcast_to_subscribers(user_id: str, payload: dict[str, Any]) -> None:
-    """Send a location update to all currently connected dashboard clients for a user."""
-    stale_connections: set[WebSocket] = set()
-
-    for websocket in list(subscribers.get(user_id, set())):
-        try:
-            await websocket.send_json(payload)
-        except RuntimeError:
-            stale_connections.add(websocket)
-        except WebSocketDisconnect:
-            stale_connections.add(websocket)
-
-    for stale in stale_connections:
-        subscribers[user_id].discard(stale)
-
-
-@app.get("/health")
-async def healthcheck() -> dict[str, str]:
-    return {"status": "ok"}
-
-
 @app.websocket("/ws/location/{user_id}")
 async def location_socket(websocket: WebSocket, user_id: str) -> None:
     await websocket.accept()
@@ -118,7 +58,6 @@ async def location_socket(websocket: WebSocket, user_id: str) -> None:
     try:
         while True:
             raw_message = await websocket.receive_json()
-
             message_type = raw_message.get("type")
             location_fields = {"lat", "lng", "timestamp"}
 
@@ -156,7 +95,13 @@ async def location_socket(websocket: WebSocket, user_id: str) -> None:
                     "timestamp": timestamp,
                 }
 
-                ack = {"type": "ack", "status": "received", "user_id": user_id, "location": {"lat": lat, "lng": lng}, "timestamp": timestamp}
+                ack = {
+                    "type": "ack",
+                    "status": "received",
+                    "user_id": user_id,
+                    "location": {"lat": lat, "lng": lng},
+                    "timestamp": timestamp,
+                }
                 await websocket.send_json(ack)
                 await broadcast_to_subscribers(user_id, payload)
                 continue
@@ -183,7 +128,13 @@ async def location_socket(websocket: WebSocket, user_id: str) -> None:
                     "location": {"lat": lat, "lng": lng},
                     "timestamp": timestamp,
                 }
-                ack = {"type": "ack", "status": "received", "user_id": user_id, "location": {"lat": lat, "lng": lng}, "timestamp": timestamp}
+                ack = {
+                    "type": "ack",
+                    "status": "received",
+                    "user_id": user_id,
+                    "location": {"lat": lat, "lng": lng},
+                    "timestamp": timestamp,
+                }
                 await websocket.send_json(ack)
                 await broadcast_to_subscribers(user_id, payload)
                 continue
@@ -195,6 +146,22 @@ async def location_socket(websocket: WebSocket, user_id: str) -> None:
     except Exception:
         subscribers[user_id].discard(websocket)
         await websocket.close(code=1011)
+
+
+async def broadcast_to_subscribers(user_id: str, payload: dict[str, Any]) -> None:
+    """Send a location update to all currently connected dashboard clients for a user."""
+    stale_connections: set[WebSocket] = set()
+
+    for websocket in list(subscribers.get(user_id, set())):
+        try:
+            await websocket.send_json(payload)
+        except RuntimeError:
+            stale_connections.add(websocket)
+        except WebSocketDisconnect:
+            stale_connections.add(websocket)
+
+    for stale in stale_connections:
+        subscribers[user_id].discard(stale)
 
 
 # Local test idea: run uvicorn app.main:app --reload and open two browser WebSocket clients
