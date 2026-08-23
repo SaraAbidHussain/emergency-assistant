@@ -3,7 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
 
 app = FastAPI(title="Emergency Assistant Location Service")
 
@@ -13,6 +14,32 @@ latest_locations: dict[str, dict[str, Any]] = {}
 
 # Each user_id can have multiple dashboard clients subscribed for live updates.
 subscribers: defaultdict[str, set[WebSocket]] = defaultdict(set)
+
+# Trusted contacts are kept in-memory for the demo service and can later be backed by Redis.
+trusted_contacts: dict[str, list[str]] = {
+    "user-123": ["demo-contact-1", "demo-contact-2"],
+}
+
+
+class ContactAddRequest(BaseModel):
+    contact_id: str
+
+
+@app.post("/contacts/{user_id}/add")
+async def add_contact(user_id: str, payload: ContactAddRequest) -> dict[str, str]:
+    if not payload.contact_id or not payload.contact_id.strip():
+        raise HTTPException(status_code=400, detail="contact_id is required")
+
+    contact_list = trusted_contacts.setdefault(user_id, [])
+    if payload.contact_id not in contact_list:
+        contact_list.append(payload.contact_id)
+
+    return {"user_id": user_id, "contact_id": payload.contact_id, "status": "added"}
+
+
+@app.get("/contacts/{user_id}")
+async def get_contacts(user_id: str) -> dict[str, Any]:
+    return {"user_id": user_id, "contacts": trusted_contacts.get(user_id, [])}
 
 
 async def broadcast_to_subscribers(user_id: str, payload: dict[str, Any]) -> None:
