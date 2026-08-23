@@ -6,6 +6,9 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
+from app.hospitals import find_nearby_hospitals
+from app.notifications import notify_trusted_contacts
+
 app = FastAPI(title="Emergency Assistant Location Service")
 
 # Store the latest known location per user_id. This is intentionally a dict now so it
@@ -40,6 +43,51 @@ async def add_contact(user_id: str, payload: ContactAddRequest) -> dict[str, str
 @app.get("/contacts/{user_id}")
 async def get_contacts(user_id: str) -> dict[str, Any]:
     return {"user_id": user_id, "contacts": trusted_contacts.get(user_id, [])}
+
+
+class EscalateRequest(BaseModel):
+    reason: str
+
+
+@app.post("/emergency/{user_id}/escalate")
+async def escalate(user_id: str, payload: EscalateRequest) -> dict[str, Any]:
+    if not payload.reason or not payload.reason.strip():
+        raise HTTPException(status_code=400, detail="reason is required")
+
+    location = latest_locations.get(user_id, {"lat": 0.0, "lng": 0.0})
+    notified = notify_trusted_contacts(
+        user_id=user_id,
+        severity=3,
+        emergency_type="injury",
+        location=location,
+    )
+
+    return {"escalated": True, "contacts_notified": notified}
+
+
+@app.get("/emergency/{user_id}/status")
+async def emergency_status(user_id: str) -> dict[str, Any]:
+    location = latest_locations.get(user_id, {"lat": 0.0, "lng": 0.0})
+    emergency_type = "injury"
+    status = "responding"
+    severity = 3
+
+    return {
+        "active": True,
+        "severity": severity,
+        "type": emergency_type,
+        "status": status,
+        "location": {"lat": location.get("lat", 0.0), "lng": location.get("lng", 0.0)},
+        "timeline": [
+            {"timestamp": "2026-08-24T12:00:00Z", "event": "Emergency triggered"},
+            {"timestamp": "2026-08-24T12:00:10Z", "event": "Escalation sent"},
+        ],
+        "nearby_help": find_nearby_hospitals(
+            float(location.get("lat", 0.0)),
+            float(location.get("lng", 0.0)),
+            emergency_type,
+        ),
+    }
 
 
 async def broadcast_to_subscribers(user_id: str, payload: dict[str, Any]) -> None:
