@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import app, trusted_contacts
 
 
 client = TestClient(app)
@@ -8,6 +8,8 @@ client = TestClient(app)
 
 def test_escalate_endpoint_notifies_all_seeded_contacts():
     user_id = "user-123"
+    trusted_contacts[user_id] = ["demo-contact-1", "demo-contact-2"]
+
     response = client.post(f"/emergency/{user_id}/escalate", json={"reason": "Emergency detected"})
 
     assert response.status_code == 200
