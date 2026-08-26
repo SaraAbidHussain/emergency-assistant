@@ -1,0 +1,25 @@
+name: responder_dashboard
+description: Responder dashboard for the AI Emergency Assistant hackathon project.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^6.2.1
+  http: ^1.2.2
+
+  # Uncomment once you're ready to swap the placeholder map for a real one:
+  # google_maps_flutter: ^2.9.0
+  # or: flutter_map: ^7.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
