@@ -75,13 +75,19 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
       _cancelUnresponsiveTimer();
     }
 
-    await EmergencyService.submitAnswer(
+    final result = await EmergencyService.submitAnswer(
       userId: 'sara-001',
       questionId: questionId,
       answer: answer,
     );
 
+    final backendSeverity = result['current_severity'] as int?;
+
     setState(() {
+      if (backendSeverity != null) {
+        _severity = backendSeverity;
+      }
+
       switch (questionId) {
         case 'conscious':
           _step = answer == 'No' ? _QuestionStep.breathing : _QuestionStep.bleeding;
@@ -89,7 +95,6 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
 
         case 'breathing':
           if (answer == 'No' || answer == 'Unsure') {
-            _severity = 4;
             _finalMessage =
                 'Not breathing normally. Escalating immediately — begin CPR if trained, and keep emergency services on the line.';
           } else {
@@ -101,7 +106,6 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
 
         case 'bleeding':
           if (answer == 'Yes') {
-            _severity = 3;
             _finalMessage =
                 'Apply firm, direct pressure to the wound with a clean cloth. Keep the injured area raised above heart level if possible. If the cloth soaks through, add more on top — do not remove it.';
           } else {

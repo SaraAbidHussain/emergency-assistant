@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _countingDown = false;
   int _secondsLeft = 3;
   Timer? _timer;
+  String _pendingDescription = 'Emergency SOS activated';
 
   bool _voiceModeEnabled = false;
   final VoiceTriggerService _voiceService = VoiceTriggerService();
@@ -60,7 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleTrigger() async {
-    final result = await EmergencyService.triggerEmergency(userId: 'sara-001');
+    final result = await EmergencyService.triggerEmergency(
+      userId: 'sara-001',
+      description: _pendingDescription,
+    );
 
     if (!mounted) return;
 
@@ -71,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+
+    _pendingDescription = 'Emergency SOS activated';
   }
 
   Future<void> _toggleVoiceMode(bool enabled) async {
@@ -80,8 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (enabled) {
       await _voiceService.startListening(
-        onTriggerPhraseDetected: () {
+        onTriggerPhraseDetected: (recognizedText) {
           if (!_countingDown) {
+            _pendingDescription = recognizedText;
             _startCountdown();
           }
         },

@@ -4,7 +4,7 @@ class VoiceTriggerService {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isInitialized = false;
   bool _shouldKeepListening = false;
-  void Function()? _onTriggerPhraseDetected;
+  void Function(String recognizedText)? _onTriggerPhraseDetected;
 
   static const List<String> triggerPhrases = ['help me', 'emergency', 'i need help'];
 
@@ -22,7 +22,9 @@ class VoiceTriggerService {
     }
   }
 
-  Future<void> startListening({required void Function() onTriggerPhraseDetected}) async {
+  Future<void> startListening({
+    required void Function(String recognizedText) onTriggerPhraseDetected,
+  }) async {
     _onTriggerPhraseDetected = onTriggerPhraseDetected;
     _shouldKeepListening = true;
 
@@ -40,7 +42,7 @@ class VoiceTriggerService {
         final text = result.recognizedWords.toLowerCase();
         for (final phrase in triggerPhrases) {
           if (text.contains(phrase)) {
-            _onTriggerPhraseDetected?.call();
+            _onTriggerPhraseDetected?.call(result.recognizedWords);
             break;
           }
         }

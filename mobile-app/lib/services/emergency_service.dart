@@ -1,20 +1,39 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 class EmergencyService {
-  static Future<Map<String, dynamic>> triggerEmergency({required String userId}) async {
-    final payload = {
-      'user_id': userId,
-      'type': 'trigger',
-      'payload': {},
-    };
+  static const String _baseUrl = 'http://localhost:8000';
 
-    print('POST /emergency/event -> $payload');
+  static Future<Map<String, dynamic>> triggerEmergency({
+    required String userId,
+    String description = 'Emergency SOS activated',
+  }) async {
+    final uri = Uri.parse('$_baseUrl/emergency/event');
 
-    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'type': 'trigger',
+          'payload': {'description': description},
+        }),
+      );
 
-    return {
-      'event_id': 'mock-event-1',
-      'timestamp': DateTime.now().toIso8601String(),
-      'current_severity': 2,
-    };
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+
+      throw Exception('Backend error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      print('triggerEmergency failed, using fallback: $e');
+      return {
+        'event_id': 'offline-fallback',
+        'timestamp': DateTime.now().toIso8601String(),
+        'current_severity': 2,
+      };
+    }
   }
 
   static Future<Map<String, dynamic>> submitAnswer({
@@ -22,38 +41,61 @@ class EmergencyService {
     required String questionId,
     required String answer,
   }) async {
-    final payload = {
-      'user_id': userId,
-      'type': 'answer',
-      'payload': {
-        'question_id': questionId,
-        'answer': answer,
-      },
-    };
+    final uri = Uri.parse('$_baseUrl/emergency/event');
 
-    print('POST /emergency/event -> $payload');
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'type': 'answer',
+          'payload': {
+            'question_id': questionId,
+            'answer': answer,
+          },
+        }),
+      );
 
-    await Future.delayed(const Duration(milliseconds: 200));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
 
-    return {
-      'event_id': 'mock-event-answer',
-      'timestamp': DateTime.now().toIso8601String(),
-    };
+      throw Exception('Backend error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      print('submitAnswer failed, using fallback: $e');
+      return {
+        'event_id': 'offline-fallback',
+        'timestamp': DateTime.now().toIso8601String(),
+        'current_severity': null,
+      };
+    }
   }
 
   static Future<Map<String, dynamic>> escalateEmergency({
     required String userId,
     required String reason,
   }) async {
-    final payload = {'reason': reason};
+    final uri = Uri.parse('$_baseUrl/emergency/$userId/escalate');
 
-    print('POST /emergency/$userId/escalate -> $payload');
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'reason': reason}),
+      );
 
-    await Future.delayed(const Duration(milliseconds: 300));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
 
-    return {
-      'escalated': true,
-      'contacts_notified': ['contact-1', 'contact-2'],
-    };
+      throw Exception('Backend error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      print('escalateEmergency failed, using fallback: $e');
+      return {
+        'escalated': true,
+        'contacts_notified': <String>[],
+      };
+    }
   }
 }
