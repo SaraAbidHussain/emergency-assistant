@@ -44,12 +44,6 @@ class TimelineEntry(BaseModel):
     event: str
 
 
-class NearbyHelpEntry(BaseModel):
-    name: str
-    distance: float
-    address: str
-
-
 class StatusResponse(BaseModel):
     active: bool
     severity: int = Field(ge=1, le=4)
@@ -57,11 +51,9 @@ class StatusResponse(BaseModel):
     status: Literal["unresponsive", "responding", "resolved"]
     location: Location
     timeline: list[TimelineEntry]
-    nearby_help: list[NearbyHelpEntry] = Field(default_factory=list)
-    # Additive field, not in the original CONTRACT.md shape — a plain-text
-    # one-paragraph summary for responders/demo UI. Safe to ignore for any
-    # consumer that only reads the original contract fields.
-    summary: str = ""
+    # Additive fields, not in the original CONTRACT.md shape.
+    summary: str
+    nearby_help: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ---------- POST /emergency/{user_id}/escalate ----------

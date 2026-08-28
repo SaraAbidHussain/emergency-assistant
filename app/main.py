@@ -6,14 +6,25 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from app.routers.emergency import router as emergency_router
+from app.routers import emergency
 
-app = FastAPI(title="Emergency Assistant Service")
-app.include_router(emergency_router)
+app = FastAPI(title="Emergency Backend", version="0.1.0")
+app.include_router(emergency.router)
 
-# Shared in-memory stores used by the realtime-infra flow.
-# These are intentionally simple dict/set structures so they can later be swapped for
-# Redis without changing the API layer.
+
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "emergency-backend"}
+
+
+# ---------------------------------------------------------------------------
+# Realtime infra (Member 4) — location sharing + trusted contacts.
+# Kept here (not a separate router) because notifications.py does a lazy
+# `from app.main import trusted_contacts` import to reuse this same dict.
+# These are intentionally simple dict/set structures so they can later be
+# swapped for Redis without changing the API layer.
+# ---------------------------------------------------------------------------
+
 latest_locations: dict[str, dict[str, Any]] = {}
 subscribers: defaultdict[str, set[WebSocket]] = defaultdict(set)
 trusted_contacts: dict[str, list[str]] = {
@@ -23,10 +34,6 @@ trusted_contacts: dict[str, list[str]] = {
 
 class ContactAddRequest(BaseModel):
     contact_id: str
-
-
-class EscalateRequest(BaseModel):
-    reason: str
 
 
 @app.get("/health")
@@ -162,8 +169,3 @@ async def broadcast_to_subscribers(user_id: str, payload: dict[str, Any]) -> Non
 
     for stale in stale_connections:
         subscribers[user_id].discard(stale)
-
-
-# Local test idea: run uvicorn app.main:app --reload and open two browser WebSocket clients
-# or a quick Python client for the same user_id; connect one client as a mobile sender and
-# one or more clients as subscribers to confirm live updates are broadcast.

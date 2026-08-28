@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime, timezone
 
-from app.hospitals import find_nearby_hospitals
 from app.models.schemas import (
     ClassifyRequest,
     ClassifyResponse,
@@ -15,41 +14,58 @@ from app.models.schemas import (
 )
 from app.repository import session_store
 from app.services import ai_service
+from app.services.hospitals import find_nearby_hospitals
+from app.services.notifications import notify_trusted_contacts
 from app.services.safety_rule_engine import decide_severity
 
 
 def classify_emergency(request: ClassifyRequest) -> ClassifyResponse:
     """
-    MOCK for now — Member 3 (ai-classification branch) will replace the
-    body of this function with a real Qwen call. The shape must keep
-    matching ClassifyResponse / CONTRACT.md.
+    Calls the real Qwen classification (ai_service.py — Member 3's module).
+    Falls back safely inside ai_service itself if the API call fails.
     """
+    result = ai_service.classify_emergency(request.description)
     return ClassifyResponse(
-        emergency_type="injury",
-        severity_hint=3,
-        confidence=0.85,
-        reasoning=f"Mock classification based on description: '{request.description[:50]}'",
+        emergency_type=result["emergency_type"],
+        severity_hint=result["severity_hint"],
+        confidence=result["confidence"],
+        reasoning=result["reasoning"],
     )
 
 
 def record_event(request: EventRequest) -> EventResponse:
     """
     Logs an event against the user's session:
-    1. Pulls a description out of the payload (if any) and sends it to
-       classify_emergency() (ai_service.py — stubbed until Member 3 wires
-       up the real Qwen call).
+    1. Pulls a description out of the payload, if any, and sends it to
+       classify_emergency() (ai_service.py). If there's no description —
+       e.g. an "answer" event, which carries {question_id, answer} instead
+       of a description per Member 1's mobile implementation — we skip the
+       AI call entirely and keep the session's current type/severity as
+       the starting point, rather than letting an empty-string classification
+       silently reset them to "unknown"/severity 1.
     2. Computes minutes_since_last_response from the session's tracked
        last_response_at.
-    3. Passes both into decide_severity() (the deterministic rule engine)
-       to get the final severity — the rule engine has the final say,
+    3. Passes the resulting severity hint into decide_severity() (the
+       deterministic rule engine) — the rule engine has the final say,
        not the AI hint alone.
     4. Updates the session and timeline, returns the contract shape.
     """
     session = session_store.get_or_create_session(request.user_id)
     now = datetime.now(timezone.utc)
 
-    description = request.payload.get("description", "")
-    classification = ai_service.classify_emergency(description)
+    description = request.payload.get("description", "").strip()
+
+    if description:
+        classification = ai_service.classify_emergency(description)
+        ai_severity_hint = classification["severity_hint"]
+        ai_emergency_type = classification.get("emergency_type")
+    else:
+        # No description in this event — don't call the AI on an empty
+        # string, and don't let type/severity regress. Keep them as-is;
+        # the rule engine below can still raise severity (e.g. unresponsive
+        # trigger override) even without a fresh AI hint.
+        ai_severity_hint = session.severity
+        ai_emergency_type = None
 
     if session.last_response_at is None:
         minutes_since_last_response = 0.0
@@ -58,14 +74,18 @@ def record_event(request: EventRequest) -> EventResponse:
         minutes_since_last_response = elapsed_seconds / 60.0
 
     final_severity = decide_severity(
-        ai_severity_hint=classification["severity_hint"],
+        ai_severity_hint=ai_severity_hint,
         minutes_since_last_response=minutes_since_last_response,
         event_type=request.type,
     )
 
     session.severity = final_severity
     session.active = True
-    session.type = classification.get("emergency_type", session.type)
+    # Only overwrite the type when the AI actually classified something
+    # this turn — never let a description-less event downgrade a known
+    # type (e.g. "injury") back to "unknown".
+    if ai_emergency_type and ai_emergency_type != "unknown":
+        session.type = ai_emergency_type
 
     # "answer" events count as the user actively responding — reset the clock.
     if request.type == "answer":
@@ -111,18 +131,16 @@ def _build_summary(session) -> str:
 
 
 def get_status(user_id: str) -> StatusResponse:
-    """Return the user status, including nearby assistance locations."""
-    from app.main import latest_locations
-
+    """
+    Returns realistic mock status data plus a generated summary. If no
+    session exists yet for this user_id, we create one so the endpoint
+    still returns a valid shape instead of a 404 — matches "return
+    realistic mock data" from Step 2.1.
+    """
     session = session_store.get_or_create_session(user_id)
 
-    if user_id in latest_locations:
-        cached = latest_locations[user_id]
-        session.location = Location(lat=float(cached.get("lat", 0.0)), lng=float(cached.get("lng", 0.0)))
-        session_store.save_session(session)
-
     if session.location is None:
-        session.location = Location(lat=31.5204, lng=74.3587)
+        session.location = Location(lat=31.5204, lng=74.3587)  # Lahore, mock default
         session_store.save_session(session)
 
     if not session.timeline:
@@ -131,26 +149,31 @@ def get_status(user_id: str) -> StatusResponse:
         )
         session_store.save_session(session)
 
-    location = session.location or Location(lat=31.5204, lng=74.3587)
-    nearby_help = find_nearby_hospitals(float(location.lat), float(location.lng), session.type or "injury")
+    nearby_help = find_nearby_hospitals(
+        lat=session.location.lat,
+        lng=session.location.lng,
+        emergency_type=session.type,
+    )
 
     return StatusResponse(
         active=session.active,
         severity=session.severity,
         type=session.type if session.type != "unknown" else "injury",
         status=session.status,
-        location=location,
+        location=session.location,
         timeline=session.timeline,
-        nearby_help=nearby_help,
         summary=_build_summary(session),
+        nearby_help=nearby_help,
     )
 
 
 def escalate_emergency(user_id: str, request: EscalateRequest) -> EscalateResponse:
-    """Mark the session escalated and notify trusted contacts via the stubbed notifier."""
-    from app.main import trusted_contacts
-    from app.notifications import notify_trusted_contacts
-
+    """
+    Escalates the session and notifies trusted contacts via
+    notifications.notify_trusted_contacts() (Member 4's realtime-infra
+    module — currently a stub that prints instead of hitting real FCM,
+    but returns real contact ids from app.main.trusted_contacts).
+    """
     session = session_store.get_or_create_session(user_id)
     session.severity = max(session.severity, 3)
     session.status = "responding"
@@ -162,16 +185,17 @@ def escalate_emergency(user_id: str, request: EscalateRequest) -> EscalateRespon
     )
     session_store.save_session(session)
 
-    location = session.location or Location(lat=0.0, lng=0.0)
+    location_dict = (
+        {"lat": session.location.lat, "lng": session.location.lng}
+        if session.location
+        else {}
+    )
     notified = notify_trusted_contacts(
         user_id=user_id,
         severity=session.severity,
-        emergency_type=session.type if session.type != "unknown" else "injury",
-        location={"lat": location.lat, "lng": location.lng},
+        emergency_type=session.type,
+        location=location_dict,
     )
-
-    if not notified:
-        notified = list(trusted_contacts.get(user_id, []))
 
     return EscalateResponse(
         escalated=True,
