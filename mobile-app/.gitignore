@@ -46,3 +46,6 @@ app.*.map.json
 windows/
 linux/
 macos/
+
+# Firebase
+google-services.json

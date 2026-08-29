@@ -51,3 +51,5 @@ app.*.map.json
 windows/
 linux/
 macos/
+
+firebase-service-account.json

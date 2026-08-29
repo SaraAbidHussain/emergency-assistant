@@ -2,27 +2,49 @@ from __future__ import annotations
 
 from typing import Any
 
+import firebase_admin
+from firebase_admin import credentials, messaging
+
+# Initialize Firebase once, when this module is first imported.
+cred = credentials.Certificate("firebase-service-account.json")
+firebase_admin.initialize_app(cred)
+
+# TEMPORARY: for testing, map your real device token to a contact_id.
+# Replace "demo-contact-1" with your own real FCM token below.
+TEST_DEVICE_TOKENS = {
+    "demo-contact-1": "fD3_8GdmQnKB6X8hI8hjFZ:APA91bHm04TvV6hWUHnskEBZYD3UOVOg68z6yHgp-GxoQnRmBH5byk5W-PBJWkihDy4IM1gsIcUYDWShY6WiDeexQtp2O_tZgBnorSChVR9chybyMBmXGWI",
+}
+
 
 def notify_trusted_contacts(user_id: str, severity: int, emergency_type: str, location: dict[str, Any]) -> list[str]:
-    """Simulate sending push notifications to each trusted contact for a user.
-
-    This is a stub so the hackathon demo can work without Firebase configured yet.
-    """
-    # Import lazily to avoid a circular dependency with app.main while still reusing the
-    # same in-memory trusted_contacts dictionary defined there.
+    """Send real push notifications to each trusted contact for a user via Firebase."""
     from app.main import trusted_contacts
 
     contacts = trusted_contacts.get(user_id, [])
     notified: list[str] = []
 
     for contact_id in contacts:
-        device_token = f"stub-token-{contact_id}"
+        device_token = TEST_DEVICE_TOKENS.get(contact_id)
+        if not device_token:
+            print(f"No real device token for {contact_id}, skipping.")
+            continue
+
         title = f"EMERGENCY ALERT - {user_id}"
         body = (
             f"Type: {emergency_type}. Severity: {severity}. "
             f"Location: lat={location.get('lat')}, lng={location.get('lng')}"
         )
-        print(f"Would send push to {device_token}: title={title!r}, body={body!r}")
-        notified.append(contact_id)
+
+        message = messaging.Message(
+            notification=messaging.Notification(title=title, body=body),
+            token=device_token,
+        )
+
+        try:
+            response = messaging.send(message)
+            print(f"Successfully sent notification to {contact_id}: {response}")
+            notified.append(contact_id)
+        except Exception as e:
+            print(f"Failed to notify {contact_id}: {e}")
 
     return notified

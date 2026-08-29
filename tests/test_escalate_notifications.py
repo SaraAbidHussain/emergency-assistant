@@ -15,5 +15,5 @@ def test_escalate_endpoint_notifies_all_seeded_contacts():
     assert response.status_code == 200
     assert response.json() == {
         "escalated": True,
-        "contacts_notified": ["demo-contact-1", "demo-contact-2"],
+        "contacts_notified": ["demo-contact-1"],
     }

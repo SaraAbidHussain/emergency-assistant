@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'screens/home_screen.dart';
 import 'screens/contacts_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  // Request notification permission and print the device token for testing.
+  await FirebaseMessaging.instance.requestPermission();
+  final token = await FirebaseMessaging.instance.getToken();
+  print('=== FCM DEVICE TOKEN ===');
+  print(token);
+  print('========================');
+
   runApp(const EmergencyAssistantApp());
 }
 

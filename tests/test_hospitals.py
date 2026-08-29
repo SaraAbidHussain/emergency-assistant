@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-from typing import Any
+import os
 from unittest.mock import patch
+
+os.environ.setdefault("BAILIAN_API_KEY", "test-key")
+os.environ.setdefault("OPENAI_API_KEY", "test-key")
 
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.models.schemas import Location
+from app.repository import session_store
 
 
 client = TestClient(app)
@@ -14,8 +19,11 @@ client = TestClient(app)
 def test_status_includes_nearby_help_list_with_mocked_api_response():
     user_id = "user-123"
     latest_location = {"lat": 24.86, "lng": 67.00}
+    session = session_store.get_or_create_session(user_id)
+    session.location = Location(lat=latest_location["lat"], lng=latest_location["lng"])
+    session_store.save_session(session)
 
-    with patch("app.hospitals.requests.post") as mock_post:
+    with patch("app.services.hospitals.requests.post") as mock_post:
         mock_post.return_value.json.return_value = {
             "elements": [
                 {
@@ -33,9 +41,6 @@ def test_status_includes_nearby_help_list_with_mocked_api_response():
             ]
         }
         mock_post.return_value.raise_for_status.return_value = None
-
-        from app.main import latest_locations
-        latest_locations[user_id] = latest_location
 
         response = client.get(f"/emergency/{user_id}/status")
 
