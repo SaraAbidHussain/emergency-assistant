@@ -30,6 +30,14 @@ class EventResponse(BaseModel):
     event_id: str
     timestamp: datetime
     current_severity: int = Field(ge=1, le=4)
+    # Additive fields, not in the original CONTRACT.md shape — output of
+    # level_actions.get_level_actions(), safe to ignore for any consumer
+    # that only reads the original contract fields.
+    level_label: str = ""
+    actions_taken: list[str] = Field(default_factory=list)
+    user_message: str = ""
+    contacts_notified: list[str] = Field(default_factory=list)
+    nearby_help: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ---------- GET /emergency/{user_id}/status ----------

@@ -15,6 +15,7 @@ from app.models.schemas import (
 from app.repository import session_store
 from app.services import ai_service
 from app.services.hospitals import find_nearby_hospitals
+from app.services.level_actions import get_level_actions
 from app.services.notifications import notify_trusted_contacts
 from app.services.safety_rule_engine import decide_severity
 
@@ -95,10 +96,27 @@ def record_event(request: EventRequest) -> EventResponse:
     session.timeline.append(entry)
     session_store.save_session(session)
 
+    location_dict = (
+        {"lat": session.location.lat, "lng": session.location.lng}
+        if session.location
+        else None
+    )
+    level_result = get_level_actions(
+        severity=session.severity,
+        user_id=request.user_id,
+        emergency_type=session.type,
+        location=location_dict,
+    )
+
     return EventResponse(
         event_id=str(uuid.uuid4()),
         timestamp=now,
         current_severity=session.severity,
+        level_label=level_result["level_label"],
+        actions_taken=level_result["actions_taken"],
+        user_message=level_result["user_message"],
+        contacts_notified=level_result["contacts_notified"],
+        nearby_help=level_result["nearby_help"],
     )
 
 
