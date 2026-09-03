@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'screens/home_screen.dart';
 import 'screens/contacts_screen.dart';
+import 'screens/role_picker_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +31,7 @@ class EmergencyAssistantApp extends StatelessWidget {
         primarySwatch: Colors.red,
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const RootScreen(),
+      home: const RolePickerScreen(),
     );
   }
 }
