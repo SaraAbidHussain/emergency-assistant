@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'models/user_model.dart';
 import 'screens/home_screen.dart';
 import 'screens/contacts_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,13 +32,14 @@ class EmergencyAssistantApp extends StatelessWidget {
         primarySwatch: Colors.red,
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const RootScreen(),
+      home: const LoginScreen(),
     );
   }
 }
 
 class RootScreen extends StatefulWidget {
-  const RootScreen({super.key});
+  final UserModel currentUser;
+  const RootScreen({super.key, required this.currentUser});
 
   @override
   State<RootScreen> createState() => _RootScreenState();
@@ -45,15 +48,15 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    ContactsScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final screens = [
+      HomeScreen(currentUser: widget.currentUser),
+      const ContactsScreen(),
+    ];
+
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {

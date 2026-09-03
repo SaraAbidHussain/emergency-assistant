@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class EmergencyService {
-  static const String _baseUrl = 'http://localhost:8000';
+  static const
+   String _baseUrl = 'http://192.168.10.4:8000';
 
   static Future<Map<String, dynamic>> triggerEmergency({
     required String userId,

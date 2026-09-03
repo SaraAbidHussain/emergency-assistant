@@ -8,7 +8,9 @@ enum _QuestionStep { conscious, breathing, bleeding, done }
 
 class EmergencyActiveScreen extends StatefulWidget {
   final int initialSeverity;
+  final String userId;
 
+<<<<<<< Updated upstream
   /// Optional full `/emergency/event` response from the screen that
   /// triggered this one (e.g. the initial SOS trigger call). If null,
   /// the level-specific fields (user_message, nearby_help, etc.) will
@@ -26,6 +28,9 @@ class EmergencyActiveScreen extends StatefulWidget {
     this.initialData,
     this.onUserSafe,
   });
+=======
+  const EmergencyActiveScreen({super.key, required this.initialSeverity,required this.userId,});
+>>>>>>> Stashed changes
 
   @override
   State<EmergencyActiveScreen> createState() => _EmergencyActiveScreenState();
@@ -159,8 +164,8 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
   }
 
   Future<void> _escalate() async {
-    final result = await EmergencyService.escalateEmergency(
-      userId: 'sara-001',
+    await EmergencyService.escalateEmergency(
+      userId:widget.userId,
       reason: 'No response within 10 seconds',
     );
 
@@ -184,7 +189,7 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
     }
 
     final result = await EmergencyService.submitAnswer(
-      userId: 'sara-001',
+      userId:widget.userId,
       questionId: questionId,
       answer: answer,
     );

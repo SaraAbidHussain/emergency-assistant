@@ -5,10 +5,12 @@ import '../widgets/countdown_overlay.dart';
 import '../widgets/pulsing_dot.dart';
 import '../services/emergency_service.dart';
 import '../services/voice_trigger_service.dart';
+import '../models/user_model.dart';
 import 'emergency_active_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final UserModel currentUser;
+  const HomeScreen({super.key, required this.currentUser});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -62,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleTrigger() async {
     final result = await EmergencyService.triggerEmergency(
-      userId: 'sara-001',
+      userId: widget.currentUser.phoneNumber,
       description: _pendingDescription,
     );
 
@@ -72,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (_) => EmergencyActiveScreen(
           initialSeverity: result['current_severity'] as int,
+          userId: widget.currentUser.phoneNumber,
         ),
       ),
     );
