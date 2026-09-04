@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../main.dart'; // for RootScreen
+import 'role_picker_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => RootScreen(currentUser: user)),
+      MaterialPageRoute(builder: (_) => RolePickerScreen(currentUser: user)),
     );
   }
 

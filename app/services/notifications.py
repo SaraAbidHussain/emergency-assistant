@@ -6,8 +6,16 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 
 # Initialize Firebase once, when this module is first imported.
-cred = credentials.Certificate("firebase-service-account.json")
-firebase_admin.initialize_app(cred)
+import json
+import os
+
+_firebase_creds_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+if _firebase_creds_json:
+    cred = credentials.Certificate(json.loads(_firebase_creds_json))
+else:
+    cred = credentials.Certificate("firebase-service-account.json")
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
 # TEMPORARY: for testing, map your real device token to a contact_id.
 # Replace "demo-contact-1" with your own real FCM token below.
