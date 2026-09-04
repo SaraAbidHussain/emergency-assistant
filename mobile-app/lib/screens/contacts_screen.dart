@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/contact_model.dart';
+
+/// Key used to store the trusted-contacts list in SharedPreferences.
+const String _kContactsPrefsKey = 'trusted_contacts';
 
 /// Formats CNIC input as XXXXX-XXXXXXX-X while typing.
 class _CnicInputFormatter extends TextInputFormatter {
@@ -37,14 +43,59 @@ class ContactsScreen extends StatefulWidget {
 
 class _ContactsScreenState extends State<ContactsScreen> {
   // Default emergency helpline is always present and cannot be removed.
-  final List<ContactModel> _contacts = [
-    const ContactModel(
-      name: 'Emergency Helpline',
-      relation: 'Emergency Service',
-      phoneNumber: '911',
-      isDefault: true,
-    ),
-  ];
+  static const ContactModel _defaultContact = ContactModel(
+    name: 'Emergency Helpline',
+    relation: 'Emergency Service',
+    phoneNumber: '911',
+    isDefault: true,
+  );
+
+  List<ContactModel> _contacts = [_defaultContact];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+  }
+
+  /// Loads saved contacts from SharedPreferences. Falls back to just the
+  /// default helpline if nothing has been saved yet.
+  Future<void> _loadContacts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kContactsPrefsKey);
+
+    List<ContactModel> loaded = [_defaultContact];
+
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw) as List<dynamic>;
+        final savedContacts = decoded
+            .map((e) => ContactModel.fromJson(e as Map<String, dynamic>))
+            .where((c) => !c.isDefault) // avoid duplicating the default
+            .toList();
+        loaded = [_defaultContact, ...savedContacts];
+      } catch (_) {
+        // If stored data is corrupted, just fall back to the default list.
+        loaded = [_defaultContact];
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _contacts = loaded;
+      _isLoading = false;
+    });
+  }
+
+  /// Persists the current contacts (excluding the default helpline) to
+  /// SharedPreferences.
+  Future<void> _saveContacts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final toSave = _contacts.where((c) => !c.isDefault).toList();
+    final encoded = jsonEncode(toSave.map((c) => c.toJson()).toList());
+    await prefs.setString(_kContactsPrefsKey, encoded);
+  }
 
   void _openAddContactSheet() {
     final formKey = GlobalKey<FormState>();
@@ -174,7 +225,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
                         ),
                         elevation: 0,
                       ),
-                      onPressed: () {
+                      onPressed: () async {
                         if (!formKey.currentState!.validate()) return;
 
                         setState(() {
@@ -187,8 +238,9 @@ class _ContactsScreenState extends State<ContactsScreen> {
                             ),
                           );
                         });
+                        await _saveContacts();
 
-                        Navigator.of(context).pop();
+                        if (context.mounted) Navigator.of(context).pop();
                       },
                       child: const Text(
                         'Save Contact',
@@ -209,10 +261,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
     );
   }
 
-  void _removeContact(ContactModel contact) {
+  void _removeContact(ContactModel contact) async {
     setState(() {
       _contacts.remove(contact);
     });
+    await _saveContacts();
   }
 
   @override
@@ -243,97 +296,102 @@ class _ContactsScreenState extends State<ContactsScreen> {
               ),
             ),
             Expanded(
-              child: _contacts.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'Trusted contacts will appear here',
-                        style: TextStyle(fontSize: 16, color: Colors.black54),
-                      ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _contacts.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final contact = _contacts[index];
-                        return Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(10),
-                            border: contact.isDefault
-                                ? Border.all(color: Colors.red.shade200)
-                                : null,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _contacts.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'Trusted contacts will appear here',
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.black54),
                           ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 24,
-                                backgroundColor: contact.isDefault
-                                    ? Colors.red.shade600
-                                    : Colors.grey.shade300,
-                                child: Icon(
-                                  contact.isDefault
-                                      ? Icons.local_phone
-                                      : Icons.person,
-                                  color: contact.isDefault
-                                      ? Colors.white
-                                      : Colors.black54,
-                                ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _contacts.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final contact = _contacts[index];
+                            return Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(10),
+                                border: contact.isDefault
+                                    ? Border.all(color: Colors.red.shade200)
+                                    : null,
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      contact.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
-                                      ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: contact.isDefault
+                                        ? Colors.red.shade600
+                                        : Colors.grey.shade300,
+                                    child: Icon(
+                                      contact.isDefault
+                                          ? Icons.local_phone
+                                          : Icons.person,
+                                      color: contact.isDefault
+                                          ? Colors.white
+                                          : Colors.black54,
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      contact.relation,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey.shade700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      contact.phoneNumber,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey.shade700,
-                                      ),
-                                    ),
-                                    if (contact.cnic.isNotEmpty) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'CNIC: ${contact.cnic}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade600,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          contact.name,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black87,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          contact.relation,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          contact.phoneNumber,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        if (contact.cnic.isNotEmpty) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'CNIC: ${contact.cnic}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  if (!contact.isDefault)
+                                    IconButton(
+                                      icon: Icon(Icons.delete_outline,
+                                          color: Colors.grey.shade600),
+                                      onPressed: () => _removeContact(contact),
+                                    ),
+                                ],
                               ),
-                              if (!contact.isDefault)
-                                IconButton(
-                                  icon: Icon(Icons.delete_outline,
-                                      color: Colors.grey.shade600),
-                                  onPressed: () => _removeContact(contact),
-                                ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),

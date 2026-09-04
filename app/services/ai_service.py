@@ -142,6 +142,9 @@ def classify_emergency(description: str) -> dict:
             result = ClassificationResult(**parsed)
             return result.model_dump()
         except (json.JSONDecodeError, ValidationError, Exception) as e:
+            print(f"[AI CLASSIFY FAILED] attempt={attempt} error={type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             if attempt == 0:
                 # retry once with a stricter prompt
                 continue

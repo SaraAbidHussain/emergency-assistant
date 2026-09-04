@@ -24,8 +24,7 @@ void main() async {
   runApp(const EmergencyAssistantApp());
 }
 
-Future<void> registerDeviceT
-oken() async {
+Future<void> registerDeviceToken() async {
   try {
     final token = await FirebaseMessaging.instance.getToken();
     if (token == null) {
