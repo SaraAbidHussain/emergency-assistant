@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; Main,
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'screens/home_screen.dart';
 import 'screens/contacts_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +17,35 @@ void main() async {
   print(token);
   print('========================');
 
+  await registerDeviceToken(); 
+
   runApp(const EmergencyAssistantApp());
+}
+
+Future<void> registerDeviceT
+oken() async {
+  try {
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token == null) {
+      print('Could not get FCM token, skipping registration.');
+      return;
+    }
+    final response = await http.post(
+      Uri.parse('http://172.16.20.162:8000/contacts/user-123/add'), // 👈 apna IP daalo
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'contact_id': 'phone-1',
+        'device_token': token,
+      }),
+    );
+    if (response.statusCode == 200) {
+      print('Device token registered successfully.');
+    } else {
+      print('Token registration failed: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Token registration error (ignored): $e');
+  }
 }
 
 class EmergencyAssistantApp extends StatelessWidget {
