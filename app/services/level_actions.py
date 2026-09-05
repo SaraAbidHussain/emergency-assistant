@@ -75,6 +75,7 @@ def get_level_actions(
     user_id: str,
     emergency_type: str,
     location: Optional[dict[str, Any]],
+    share_location_opt_in: bool = False,
 ) -> dict[str, Any]:
     """
     Returns:
@@ -84,7 +85,18 @@ def get_level_actions(
       "user_message": str,
       "contacts_notified": list[str],
       "nearby_help": list[dict],
+      "chat_available": bool,  # True for Level 1-2 (user can open an AI
+                                # chat for guidance); False for Level 3-4,
+                                # where the system is already acting
+                                # automatically and shouldn't distract the
+                                # user with a conversation.
     }
+
+    share_location_opt_in: only meaningful at severity 2 (Moderate), where
+    sharing is a choice, not automatic. When True, the user has actively
+    chosen to share — so we notify contacts the same way Level 3/4 do
+    automatically. Levels 1, 3, and 4 ignore this flag: Level 1 never
+    shares, Level 3/4 always do.
     """
     level_label = LEVEL_LABELS.get(severity, "unknown")
 
@@ -101,23 +113,40 @@ def get_level_actions(
             ),
             "contacts_notified": [],
             "nearby_help": [],
+            "chat_available": True,
         }
 
     if severity == 2:
         nearby_help = _safe_find_nearby_hospitals(location, emergency_type)
+        actions_taken = [
+            "Provided immediate first-aid instructions",
+            "Recommended nearby medical assistance",
+        ]
+        contacts_notified: list[str] = []
+        user_message = (
+            "This looks like a moderate injury. Please follow the "
+            "first-aid steps and consider contacting a trusted friend."
+        )
+
+        if share_location_opt_in:
+            contacts_notified = _safe_notify_trusted_contacts(
+                user_id, severity, emergency_type, location
+            )
+            actions_taken.append("Shared location with trusted contacts (user opted in)")
+            user_message = (
+                "This looks like a moderate injury. Your location has been "
+                "shared with your trusted contacts as you requested."
+            )
+        else:
+            actions_taken.append("Suggested contacting a trusted friend")
+
         return {
             "level_label": level_label,
-            "actions_taken": [
-                "Provided immediate first-aid instructions",
-                "Recommended nearby medical assistance",
-                "Suggested contacting a trusted friend",
-            ],
-            "user_message": (
-                "This looks like a moderate injury. Please follow the "
-                "first-aid steps and consider contacting a trusted friend."
-            ),
-            "contacts_notified": [],
+            "actions_taken": actions_taken,
+            "user_message": user_message,
+            "contacts_notified": contacts_notified,
             "nearby_help": nearby_help,
+            "chat_available": True,
         }
 
     if severity == 3:
@@ -139,6 +168,7 @@ def get_level_actions(
             ),
             "contacts_notified": contacts_notified,
             "nearby_help": nearby_help,
+            "chat_available": False,
         }
 
     # severity == 4 (or any unexpected value >= 4) — treat as critical,
@@ -162,4 +192,5 @@ def get_level_actions(
         ),
         "contacts_notified": contacts_notified,
         "nearby_help": nearby_help,
+        "chat_available": False,
     }

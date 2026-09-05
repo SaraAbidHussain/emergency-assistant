@@ -30,9 +30,9 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
     query = f"""
     [out:json][timeout:15];
     (
-      node["amenity"]={amenity}(around:5000,{lat},{lng});
-      way["amenity"]={amenity}(around:5000,{lat},{lng});
-      relation["amenity"]={amenity}(around:5000,{lat},{lng});
+      node["amenity"="{amenity}"](around:5000,{lat},{lng});
+      way["amenity"="{amenity}"](around:5000,{lat},{lng});
+      relation["amenity"="{amenity}"](around:5000,{lat},{lng});
     );
     out body center; 
     >;
@@ -42,7 +42,8 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
         response = requests.post(
             "https://overpass-api.de/api/interpreter",
             data={"data": query},
-            timeout=10,
+            headers={"User-Agent": "EmergencyAssistantApp/1.0 (hackathon-project)"},
+            timeout=20,
         )
         response.raise_for_status()
         payload = response.json()

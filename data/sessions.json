@@ -1,0 +1,176 @@
+{
+  "test-1": {
+    "user_id": "test-1",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:20:45.555143Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:21:04.619397Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:21:20.650110Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:21:44.584900Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-2": {
+    "user_id": "test-2",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:40:06.811519Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:40:32.161489Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:41:06.075610Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:41:28.071627Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-3": {
+    "user_id": "test-3",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:47:01.768696Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:48:05.386572Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-4": {
+    "user_id": "test-4",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:50:24.565138Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:50:24.746908Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-5": {
+    "user_id": "test-5",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:54:06.645832Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:54:07.965025Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-6": {
+    "user_id": "test-6",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.472188,
+      "lng": 74.341199
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:56:28.709810Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:56:28.960047Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T21:09:45.819035Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T21:10:19.695068Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "user-123": {
+    "user_id": "user-123",
+    "active": true,
+    "severity": 3,
+    "type": "unknown",
+    "status": "responding",
+    "location": {
+      "lat": 24.86,
+      "lng": 67.0
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T21:37:58.009762Z",
+        "event": "escalated: Emergency detected"
+      }
+    ],
+    "last_response_at": null
+  }
+}

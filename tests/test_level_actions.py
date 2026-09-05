@@ -115,6 +115,58 @@ def test_hospitals_exception_at_level_2_is_caught():
         assert result["nearby_help"] == []
 
 
+# ---------- Level 2 — optional location sharing (opt-in) ----------
+
+def test_level_2_without_opt_in_does_not_notify_contacts():
+    with patch("app.services.level_actions.notify_trusted_contacts") as mock_notify, \
+         patch("app.services.level_actions.find_nearby_hospitals", return_value=[]):
+        result = get_level_actions(
+            severity=2, user_id="u1", emergency_type="injury",
+            location=SAMPLE_LOCATION, share_location_opt_in=False,
+        )
+        mock_notify.assert_not_called()
+        assert result["contacts_notified"] == []
+
+
+def test_level_2_with_opt_in_notifies_contacts():
+    with patch("app.services.level_actions.notify_trusted_contacts", return_value=["demo-contact-1"]) as mock_notify, \
+         patch("app.services.level_actions.find_nearby_hospitals", return_value=[]):
+        result = get_level_actions(
+            severity=2, user_id="u1", emergency_type="injury",
+            location=SAMPLE_LOCATION, share_location_opt_in=True,
+        )
+        mock_notify.assert_called_once()
+        assert result["contacts_notified"] == ["demo-contact-1"]
+        assert "shared" in result["user_message"].lower()
+
+
+# ---------- chat_available flag ----------
+
+def test_chat_available_true_for_level_1():
+    result = get_level_actions(severity=1, user_id="u1", emergency_type="injury", location=None)
+    assert result["chat_available"] is True
+
+
+def test_chat_available_true_for_level_2():
+    with patch("app.services.level_actions.find_nearby_hospitals", return_value=[]):
+        result = get_level_actions(severity=2, user_id="u1", emergency_type="injury", location=None)
+        assert result["chat_available"] is True
+
+
+def test_chat_available_false_for_level_3():
+    with patch("app.services.level_actions.notify_trusted_contacts", return_value=[]), \
+         patch("app.services.level_actions.find_nearby_hospitals", return_value=[]):
+        result = get_level_actions(severity=3, user_id="u1", emergency_type="injury", location=None)
+        assert result["chat_available"] is False
+
+
+def test_chat_available_false_for_level_4():
+    with patch("app.services.level_actions.notify_trusted_contacts", return_value=[]), \
+         patch("app.services.level_actions.find_nearby_hospitals", return_value=[]):
+        result = get_level_actions(severity=4, user_id="u1", emergency_type="injury", location=None)
+        assert result["chat_available"] is False
+
+
 # ---------- Unexpected severity values ----------
 
 def test_unexpected_severity_above_4_treated_as_critical():

@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 
 from app.models.schemas import (
+    ChatRequest,
+    ChatResponse,
     ClassifyRequest,
     ClassifyResponse,
     EscalateRequest,
@@ -32,3 +34,12 @@ def status(user_id: str) -> StatusResponse:
 @router.post("/{user_id}/escalate", response_model=EscalateResponse)
 def escalate(user_id: str, request: EscalateRequest) -> EscalateResponse:
     return emergency_service.escalate_emergency(user_id, request)
+
+
+@router.post("/chat", response_model=ChatResponse)
+def chat(request: ChatRequest) -> ChatResponse:
+    """
+    Level 1-2 only — Level 3-4 sessions get a fixed safety message instead
+    of an AI reply (see emergency_service.handle_chat).
+    """
+    return emergency_service.handle_chat(request)
