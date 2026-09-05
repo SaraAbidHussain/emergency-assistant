@@ -1,0 +1,10 @@
+{
+  "trusted_contacts": {
+    "user-123": [
+      "demo-contact-1",
+      "demo-contact-2",
+      "demo-contact-3"
+    ]
+  },
+  "device_tokens": {}
+}

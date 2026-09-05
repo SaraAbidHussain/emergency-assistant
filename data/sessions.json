@@ -154,5 +154,23 @@
       }
     ],
     "last_response_at": null
+  },
+  "user-123": {
+    "user_id": "user-123",
+    "active": true,
+    "severity": 3,
+    "type": "unknown",
+    "status": "responding",
+    "location": {
+      "lat": 24.86,
+      "lng": 67.0
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T21:37:58.009762Z",
+        "event": "escalated: Emergency detected"
+      }
+    ],
+    "last_response_at": null
   }
 }
