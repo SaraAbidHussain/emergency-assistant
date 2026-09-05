@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../widgets/sos_button.dart';
 import '../widgets/countdown_overlay.dart';
@@ -6,6 +7,7 @@ import '../widgets/pulsing_dot.dart';
 import '../services/emergency_service.dart';
 import '../services/voice_trigger_service.dart';
 import '../models/user_model.dart';
+import 'auth_screen.dart';
 import 'emergency_active_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -30,6 +32,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _timer?.cancel();
     _voiceService.stopListening();
     super.dispose();
+  }
+
+  void _logout() async {
+    await FirebaseAuth.instance.signOut();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthScreen()),
+      (route) => false,
+    );
   }
 
   void _startCountdown() {
@@ -104,58 +117,64 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            color: Colors.grey.shade100,
-            child: const Text(
-              'Ready',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-                letterSpacing: 1.2,
-              ),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.grey.shade100,
+        elevation: 0,
+        title: const Text(
+          'Ready',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_voiceModeEnabled) ...[
-                  const PulsingDot(),
-                  const SizedBox(width: 8),
-                ],
-                IconButton(
-                  onPressed: () => _toggleVoiceMode(!_voiceModeEnabled),
-                  icon: Icon(
-                    _voiceModeEnabled ? Icons.mic : Icons.mic_off,
-                    color: _voiceModeEnabled ? Colors.red : Colors.grey,
-                  ),
-                ),
-                Text(
-                  'Voice mode',
-                  style: TextStyle(
-                    color: _voiceModeEnabled ? Colors.red : Colors.grey.shade700,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: _countingDown
-                  ? CountdownOverlay(secondsLeft: _secondsLeft, onCancel: _cancelCountdown)
-                  : SosButton(onTap: _startCountdown),
-            ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout),
+            tooltip: 'Log out',
           ),
         ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_voiceModeEnabled) ...[
+                    const PulsingDot(),
+                    const SizedBox(width: 8),
+                  ],
+                  IconButton(
+                    onPressed: () => _toggleVoiceMode(!_voiceModeEnabled),
+                    icon: Icon(
+                      _voiceModeEnabled ? Icons.mic : Icons.mic_off,
+                      color: _voiceModeEnabled ? Colors.red : Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    'Voice mode',
+                    style: TextStyle(
+                      color: _voiceModeEnabled ? Colors.red : Colors.grey.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: _countingDown
+                    ? CountdownOverlay(secondsLeft: _secondsLeft, onCancel: _cancelCountdown)
+                    : SosButton(onTap: _startCountdown),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
