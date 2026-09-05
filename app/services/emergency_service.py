@@ -55,6 +55,20 @@ def record_event(request: EventRequest) -> EventResponse:
 
     description = request.payload.get("description", "").strip()
 
+    # A bare SOS trigger with only the generic default description
+    # ("Emergency SOS activated") carries no real situational info.
+    # Classifying that string would just make the AI guess blind and
+    # commonly return severity 4, which then locks the session at 4
+    # (safety_rule_engine always returns 4 once the AI says 4) and skips
+    # the whole question flow. Treat a trigger as "no real description"
+    # unless the caller actually supplied specific details.
+    is_generic_trigger_description = (
+        request.type == "trigger"
+        and description.lower() in {"", "emergency sos activated"}
+    )
+    if is_generic_trigger_description:
+        description = ""
+
     ai_severity_hint = None
     ai_emergency_type = None
 
@@ -112,9 +126,14 @@ def record_event(request: EventRequest) -> EventResponse:
             # If an event has neither a description nor an answer,
             # there is no new information to classify.
             #
-            # In this case, preserve the existing severity rather than
-            # pretending that it is a fresh AI classification.
-            ai_severity_hint = session.severity
+            # A fresh generic trigger (new session, no prior severity)
+            # starts at the lowest level and lets the question flow
+            # raise it as real answers come in. An existing session
+            # simply keeps its current severity.
+            if is_generic_trigger_description and session.severity == 1 and not session.timeline:
+                ai_severity_hint = 1
+            else:
+                ai_severity_hint = session.severity
             ai_emergency_type = None
 
     # ---------------------------------------------------------
@@ -343,4 +362,3 @@ def escalate_emergency(
         escalated=True,
         contacts_notified=notified,
     )
-

@@ -72,9 +72,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => EmergencyActiveScreen(
+        builder: (context) => EmergencyActiveScreen(
           initialSeverity: result['current_severity'] as int,
           userId: widget.currentUser.phoneNumber,
+          onUserSafe: () => Navigator.of(context).pop(),
         ),
       ),
     );

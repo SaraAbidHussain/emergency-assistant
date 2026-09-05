@@ -32,7 +32,7 @@ Future<void> registerDeviceToken() async {
       return;
     }
     final response = await http.post(
-      Uri.parse('http://172.16.20.162:8000/contacts/user-123/add'), // 👈 apna IP daalo
+      Uri.parse('http://192.168.0.105:8000/contacts/user-123/add'), // 👈 apna IP daalo
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'contact_id': 'phone-1',
