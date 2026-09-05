@@ -49,3 +49,4 @@ macos/
 
 # Firebase
 google-services.json
+.venv
