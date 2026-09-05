@@ -5,6 +5,44 @@ import 'auth_header_service.dart';
 class EmergencyService {
   static const String _baseUrl = 'http://localhost:8000';
 
+  static Map<String, dynamic> _parseEmergencyResponse(
+    Map<String, dynamic> data,
+  ) {
+    return {
+      'event_id': data['event_id'] as String,
+      'timestamp': data['timestamp'] as String,
+      'current_severity': data['current_severity'] as int,
+      'level_label': data['level_label'] as String,
+      'actions_taken': (data['actions_taken'] as List)
+          .map((action) => action.toString())
+          .toList(),
+      'user_message': data['user_message'] as String,
+      'contacts_notified': (data['contacts_notified'] as List)
+          .map((contact) => contact.toString())
+          .toList(),
+      'nearby_help': (data['nearby_help'] as List)
+          .map((help) => Map<String, dynamic>.from(help as Map))
+          .toList(),
+      'chat_available': data['chat_available'] as bool,
+    };
+  }
+
+  static Map<String, dynamic> _emergencyFallback({
+    required int? currentSeverity,
+  }) {
+    return {
+      'event_id': 'offline-fallback',
+      'timestamp': DateTime.now().toIso8601String(),
+      'current_severity': currentSeverity,
+      'level_label': 'minor',
+      'actions_taken': <String>[],
+      'user_message': 'Emergency services are temporarily unavailable.',
+      'contacts_notified': <String>[],
+      'nearby_help': <Map<String, dynamic>>[],
+      'chat_available': true,
+    };
+  }
+
   static Future<Map<String, dynamic>> saveProfile({
     required String name,
     required String phone,
@@ -88,17 +126,15 @@ class EmergencyService {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        return _parseEmergencyResponse(
+          jsonDecode(response.body) as Map<String, dynamic>,
+        );
       }
 
       throw Exception('Backend error ${response.statusCode}: ${response.body}');
     } catch (e) {
       print('triggerEmergency failed, using fallback: $e');
-      return {
-        'event_id': 'offline-fallback',
-        'timestamp': DateTime.now().toIso8601String(),
-        'current_severity': 2,
-      };
+      return _emergencyFallback(currentSeverity: 2);
     }
   }
 
@@ -128,17 +164,15 @@ class EmergencyService {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        return _parseEmergencyResponse(
+          jsonDecode(response.body) as Map<String, dynamic>,
+        );
       }
 
       throw Exception('Backend error ${response.statusCode}: ${response.body}');
     } catch (e) {
       print('submitAnswer failed, using fallback: $e');
-      return {
-        'event_id': 'offline-fallback',
-        'timestamp': DateTime.now().toIso8601String(),
-        'current_severity': null,
-      };
+      return _emergencyFallback(currentSeverity: null);
     }
   }
 
