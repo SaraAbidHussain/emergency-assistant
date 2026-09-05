@@ -142,9 +142,6 @@ def classify_emergency(description: str) -> dict:
             result = ClassificationResult(**parsed)
             return result.model_dump()
         except (json.JSONDecodeError, ValidationError, Exception) as e:
-            print(f"[AI CLASSIFY FAILED] attempt={attempt} error={type(e).__name__}: {e}")
-            import traceback
-            traceback.print_exc()
             if attempt == 0:
                 # retry once with a stricter prompt
                 continue
@@ -236,25 +233,66 @@ def get_first_aid_question(emergency_type: str, previous_answers: list[dict]) ->
 
 
 # ---------------------------------------------------------------------------
-# Test script (run: python ai_service.py)
+# chat_with_ai() — Level 1-2 freeform guidance chat.
+#
+# Unlike get_first_aid_question() (one rigid Yes/No/Unsure question at a
+# time), this lets the user type a free-text message and get a
+# conversational reply. Only used at Level 1-2 (minor/moderate) — Level 3-4
+# skip this in favor of automatic action, per level_actions.py's
+# chat_available flag.
 # ---------------------------------------------------------------------------
 
-if __name__ == "__main__":
-    print("=== Test 1: classify_emergency (English) ===")
-    result1 = classify_emergency("I fell from the stairs and my leg is bleeding badly")
-    print(json.dumps(result1, indent=2))
+CHAT_SYSTEM_PROMPT = """You are a calm, supportive first-aid guidance assistant embedded in an
+emergency response app, currently talking with a user who has a MINOR or MODERATE injury
+(not a life-threatening one — the app's severity system has already screened for that).
 
-    print("\n=== Test 2: classify_emergency (Roman Urdu) ===")
-    result2 = classify_emergency("Mujhe saans lene mein mushkil ho rahi hai")
-    print(json.dumps(result2, indent=2))
+Rules:
+- Keep replies short (2-4 sentences), calm, and practical.
+- You may give general first-aid guidance appropriate for minor/moderate injuries
+  (cleaning wounds, applying pressure, rest, ice, when to see a doctor, etc.).
+- NEVER diagnose a specific medical condition. Use phrasing like "this could be" or
+  "it may help to", not "you have X".
+- If the user describes something that sounds more serious than minor/moderate
+  (e.g. severe bleeding, loss of consciousness, trouble breathing), tell them clearly
+  to use the app's SOS/emergency button or call local emergency services immediately —
+  don't keep chatting normally.
+- Respond in plain text only — no JSON, no markdown formatting, no code fences.
+- If the user writes in Roman Urdu or mixed English/Urdu, you may reply in the same
+  mixed style to stay natural and easy to understand.
+"""
 
-    print("\n=== Test 3: get_first_aid_question (injury flow, first question) ===")
-    q1 = get_first_aid_question("injury", [])
-    print(json.dumps(q1, indent=2))
 
-    print("\n=== Test 4: get_first_aid_question (with previous answer) ===")
-    q2 = get_first_aid_question(
-        "injury",
-        [{"question": q1["question"], "answer": "No"}],
+def chat_with_ai(emergency_type: str, conversation_history: list[dict], message: str) -> str:
+    """
+    conversation_history: list of {"role": "user"|"assistant", "content": str}
+    dicts representing prior turns in this chat (may be empty for the first
+    message). message: the user's new message to respond to.
+
+    Returns a plain-text reply string. Falls back to a safe, generic
+    message if the API call fails — never raises.
+    """
+    messages = [{"role": "system", "content": f"{CHAT_SYSTEM_PROMPT}\n\nemergency_type: {emergency_type}"}]
+    for turn in conversation_history:
+        role = turn.get("role")
+        content = turn.get("content", "")
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": message})
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            temperature=0.4,
+        )
+        reply = response.choices[0].message.content
+        return reply.strip() if reply else _chat_fallback_reply()
+    except Exception:
+        return _chat_fallback_reply()
+
+
+def _chat_fallback_reply() -> str:
+    return (
+        "Sorry, I'm having trouble responding right now. If this feels urgent, "
+        "please use the SOS button or contact emergency services directly."
     )
-    print(json.dumps(q2, indent=2))

@@ -38,6 +38,24 @@ class EventResponse(BaseModel):
     user_message: str = ""
     contacts_notified: list[str] = Field(default_factory=list)
     nearby_help: list[dict[str, Any]] = Field(default_factory=list)
+    chat_available: bool = False
+
+
+# ---------- POST /emergency/chat (Level 1-2 AI guidance chat) ----------
+
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    user_id: str
+    message: str
+    conversation_history: list[ChatTurn] = Field(default_factory=list)
+
+
+class ChatResponse(BaseModel):
+    reply: str
 
 
 # ---------- GET /emergency/{user_id}/status ----------
