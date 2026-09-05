@@ -53,4 +53,4 @@ linux/
 macos/
 
 firebase-service-account.json
-venv/
+venv/.venv/
