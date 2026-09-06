@@ -207,6 +207,25 @@ class EmergencyService {
     }
   }
 
+  static Future<void> resolveEmergency({
+    required String userId,
+  }) async {
+    final uri = Uri.parse('$_baseUrl/emergency/$userId/resolve');
+
+    final authHeader = await AuthHeaderService.getAuthHeader();
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeader,
+      },
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Resolve failed: ${response.statusCode}');
+    }
+  }
+
   static Future<Map<String, dynamic>> sendChatMessage({
     required String userId,
     required String message,

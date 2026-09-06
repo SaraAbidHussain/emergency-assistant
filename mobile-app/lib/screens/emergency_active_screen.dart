@@ -329,7 +329,7 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
 
   // ---- level 4: "I AM SAFE" double-tap confirm ---------------------------
 
-  void _tapIAmSafe() {
+  Future<void> _tapIAmSafe() async {
     if (!_iAmSafeArmed) {
       setState(() => _iAmSafeArmed = true);
       _iAmSafeArmTimer?.cancel();
@@ -340,8 +340,19 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
     }
 
     _iAmSafeArmTimer?.cancel();
-    setState(() => _iAmSafeArmed = false);
-    widget.onUserSafe?.call();
+
+    try {
+      await EmergencyService.resolveEmergency(userId: widget.userId);
+      if (!mounted) return;
+      setState(() => _iAmSafeArmed = false);
+      widget.onUserSafe?.call();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to resolve emergency. Please try again.')),
+        );
+      }
+    }
   }
 
   // ---- shared bits --------------------------------------------------
