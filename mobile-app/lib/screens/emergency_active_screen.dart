@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/emergency_service.dart';
 import '../utils/severity_helper.dart';
+import 'level1_screen.dart';
+import 'level2_screen.dart';
 
 enum _QuestionStep { conscious, breathing, bleeding, done }
 
@@ -99,6 +101,20 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
     final contactsNotified = data['contacts_notified'] as List?;
     final nearbyHelpRaw = data['nearby_help'] as List?;
 
+    final currentLevel = _levelLabel ?? _levelFromSeverity(_severity);
+    if (levelLabel != null &&
+        levelLabel != currentLevel &&
+        (levelLabel == 'minor' || levelLabel == 'moderate' ||
+            levelLabel == 'serious' || levelLabel == 'critical')) {
+      final nextScreen = _screenForLevel(levelLabel, data);
+      if (nextScreen != null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => nextScreen),
+        );
+        return;
+      }
+    }
+
     setState(() {
       if (userMessage != null) _userMessage = userMessage;
       if (levelLabel != null) _levelLabel = levelLabel;
@@ -121,6 +137,50 @@ class _EmergencyActiveScreenState extends State<EmergencyActiveScreen> {
         }
       }
     });
+  }
+
+  String _levelFromSeverity(int severity) {
+    switch (severity) {
+      case 1:
+        return 'minor';
+      case 2:
+        return 'moderate';
+      case 3:
+        return 'serious';
+      case 4:
+        return 'critical';
+      default:
+        return 'serious';
+    }
+  }
+
+  Widget? _screenForLevel(String level, Map<String, dynamic> data) {
+    switch (level) {
+      case 'minor':
+        return Level1Screen(
+          initialSeverity: data['current_severity'] as int? ?? 1,
+          userId: widget.userId,
+          initialData: data,
+          onUserSafe: widget.onUserSafe,
+        );
+      case 'moderate':
+        return Level2Screen(
+          initialSeverity: data['current_severity'] as int? ?? 2,
+          userId: widget.userId,
+          initialData: data,
+          onUserSafe: widget.onUserSafe,
+        );
+      case 'serious':
+      case 'critical':
+        return EmergencyActiveScreen(
+          initialSeverity: data['current_severity'] as int? ?? 3,
+          userId: widget.userId,
+          initialData: data,
+          onUserSafe: widget.onUserSafe,
+        );
+      default:
+        return null;
+    }
   }
 
   void _confirmDowngrade() {

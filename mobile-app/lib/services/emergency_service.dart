@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'auth_header_service.dart';
 
 class EmergencyService {
-  static const String _baseUrl = 'http://localhost:8000';
+  static const String _baseUrl = 'http://192.168.18.23:8000';
 
   static Map<String, dynamic> _parseEmergencyResponse(
     Map<String, dynamic> data,
@@ -204,6 +204,42 @@ class EmergencyService {
         'escalated': true,
         'contacts_notified': <String>[],
       };
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendChatMessage({
+    required String userId,
+    required String message,
+    required List<Map<String, dynamic>> conversationHistory,
+  }) async {
+    const fallbackReply =
+        "Sorry, I'm having trouble responding right now. If this feels urgent, "
+        'please use the SOS button or contact emergency services directly.';
+    final uri = Uri.parse('$_baseUrl/emergency/chat');
+
+    try {
+      final authHeader = await AuthHeaderService.getAuthHeader();
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeader,
+        },
+        body: jsonEncode({
+          'user_id': userId,
+          'message': message,
+          'conversation_history': conversationHistory,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+
+      throw Exception('Backend error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      print('sendChatMessage failed, using fallback: $e');
+      return {'reply': fallbackReply};
     }
   }
 }
