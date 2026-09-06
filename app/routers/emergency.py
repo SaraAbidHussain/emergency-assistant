@@ -9,6 +9,7 @@ from app.models.schemas import (
     EscalateResponse,
     EventRequest,
     EventResponse,
+    ResolveResponse,
     StatusResponse,
 )
 from app.services import emergency_service
@@ -34,6 +35,16 @@ def status(user_id: str) -> StatusResponse:
 @router.post("/{user_id}/escalate", response_model=EscalateResponse)
 def escalate(user_id: str, request: EscalateRequest) -> EscalateResponse:
     return emergency_service.escalate_emergency(user_id, request)
+
+
+@router.post("/{user_id}/resolve", response_model=ResolveResponse)
+def resolve(user_id: str) -> ResolveResponse:
+    """
+    Call this when the user taps "I am safe". Resets severity to 1 and
+    marks the session resolved, so the next SOS starts fresh instead of
+    reusing a stale severity-4 session.
+    """
+    return emergency_service.resolve_emergency(user_id)
 
 
 @router.post("/chat", response_model=ChatResponse)

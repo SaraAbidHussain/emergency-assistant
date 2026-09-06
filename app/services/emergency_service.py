@@ -11,6 +11,7 @@ from app.models.schemas import (
     EventRequest,
     EventResponse,
     Location,
+    ResolveResponse,
     StatusResponse,
     TimelineEntry,
 )
@@ -245,6 +246,27 @@ def escalate_emergency(user_id: str, request: EscalateRequest) -> EscalateRespon
         escalated=True,
         contacts_notified=notified,
     )
+
+
+def resolve_emergency(user_id: str) -> ResolveResponse:
+    """
+    Called when the user taps "I am safe" — clears the active emergency so
+    the NEXT SOS trigger starts fresh instead of inheriting a stale high
+    severity from a previous emergency (e.g. an old severity-4 session
+    that never got reset). Does not delete the session/timeline history,
+    just marks it resolved and drops severity back to a neutral baseline.
+    """
+    session = session_store.get_or_create_session(user_id)
+    session.active = False
+    session.severity = 1
+    session.status = "resolved"
+    session.last_response_at = datetime.now(timezone.utc)
+    session.timeline.append(
+        TimelineEntry(timestamp=datetime.now(timezone.utc), event="resolved: user marked safe")
+    )
+    session_store.save_session(session)
+
+    return ResolveResponse(resolved=True, severity=session.severity, status=session.status)
 
 
 def handle_chat(request: ChatRequest) -> ChatResponse:

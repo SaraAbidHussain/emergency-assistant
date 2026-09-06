@@ -204,5 +204,15 @@
       }
     ],
     "last_response_at": null
+  },
+  "chat-debug-1": {
+    "user_id": "chat-debug-1",
+    "active": true,
+    "severity": 1,
+    "type": "unknown",
+    "status": "responding",
+    "location": null,
+    "timeline": [],
+    "last_response_at": null
   }
 }

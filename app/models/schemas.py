@@ -93,6 +93,14 @@ class EscalateResponse(BaseModel):
     contacts_notified: list[str]
 
 
+# ---------- POST /emergency/{user_id}/resolve ----------
+
+class ResolveResponse(BaseModel):
+    resolved: bool
+    severity: int
+    status: str
+
+
 # ---------- Internal: what we keep per active session in the store ----------
 
 class EmergencySession(BaseModel):
