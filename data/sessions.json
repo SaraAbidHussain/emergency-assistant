@@ -264,5 +264,112 @@
       }
     ],
     "last_response_at": "2026-09-06T21:56:30.522686Z"
+  },
+  "l2715ENXIGWXSEwQcTywSQnynhR2": {
+    "user_id": "l2715ENXIGWXSEwQcTywSQnynhR2",
+    "active": true,
+    "severity": 1,
+    "type": "injury",
+    "status": "resolved",
+    "location": null,
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T22:51:01.423749Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T22:51:29.501159Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:51:39.653778Z",
+        "event": "escalated: No response within 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:08.219999Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:11.105053Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:11.918573Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:32.682231Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:12.910398Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:13.975900Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:14.802087Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:15.464799Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:01:49.649535Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:01:55.959379Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:06.650007Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:34.873313Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:39.376408Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:53.583902Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:56.068267Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:06.980726Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:08.304415Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:20.817155Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:40.743314Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:48.766080Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:04:02.879327Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": "2026-09-06T23:03:48.766080Z"
   }
 }

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'auth_header_service.dart';
 
 class EmergencyService {
-  static const String _baseUrl = 'http://10.190.253.201:8000';
+  static const String _baseUrl = 'http://192.168.0.111:8000';
 
   static Map<String, dynamic> _parseEmergencyResponse(
     Map<String, dynamic> data,
@@ -137,7 +137,41 @@ class EmergencyService {
       return _emergencyFallback(currentSeverity: 2);
     }
   }
+  static Future<Map<String, dynamic>> submitAssessment({
+  required String userId,
+  required String description,
+  required Map<String, String> answers,
+}) async {
+  final uri = Uri.parse('$_baseUrl/emergency/event');
 
+  final authHeader = await AuthHeaderService.getAuthHeader();
+
+  final response = await http.post(
+    uri,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeader,
+    },
+    body: jsonEncode({
+      'user_id': userId,
+      'type': 'trigger',
+      'payload': {
+        'description': description,
+        'assessment_answers': answers,
+      },
+    }),
+  );
+
+  if (response.statusCode == 200) {
+    return _parseEmergencyResponse(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+  }
+
+  throw Exception(
+    'Backend error ${response.statusCode}: ${response.body}',
+  );
+}
   static Future<Map<String, dynamic>> submitAnswer({
     required String userId,
     required String questionId,

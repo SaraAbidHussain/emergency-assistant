@@ -1,36 +1,78 @@
 """
 Deterministic safety rule engine.
 
-This module contains NO AI calls and NO side effects — it's pure logic
-that takes inputs and returns a severity level. That's intentional:
-the rule engine is the safety-critical layer that must behave the same
-way every time, independent of whatever the AI classifier says, and it
-must be trivially unit-testable without mocking a network call.
+Hardcoded safety rules always have priority over AI classification.
+AI can help understand the user's description, but it cannot downgrade
+a dangerous answer given to a safety-critical question.
 """
 
-UNRESPONSIVE_THRESHOLD_MINUTES = 0.17  # ~10 seconds
+UNRESPONSIVE_THRESHOLD_SECONDS = 10
+
+
+def severity_from_answers(answers: dict) -> int:
+    """
+    Convert hardcoded emergency assessment answers into a minimum severity.
+
+    The deterministic rules have priority over the AI classifier.
+    """
+
+    severity = 1
+
+    conscious = answers.get("conscious")
+    breathing = answers.get("breathing")
+    heavy_bleeding = answers.get("heavy_bleeding")
+
+    # No consciousness is immediately critical.
+    if conscious == "No":
+        severity = max(severity, 4)
+
+    # Not breathing normally is immediately critical.
+    if breathing == "No":
+        severity = max(severity, 4)
+
+    # Heavy bleeding is at least serious.
+    if heavy_bleeding == "Yes":
+        severity = max(severity, 3)
+
+    # Unsure on a critical symptom should be treated cautiously.
+    if breathing == "Unsure":
+        severity = max(severity, 3)
+
+    if conscious == "Unsure":
+        severity = max(severity, 2)
+
+    if heavy_bleeding == "Unsure":
+        severity = max(severity, 2)
+
+    return severity
 
 
 def decide_severity(
     ai_severity_hint: int,
     minutes_since_last_response: float,
     event_type: str,
+    hardcoded_severity: int = 1,
 ) -> int:
     """
-    Returns the final severity level (1-4) after applying safety overrides
-    on top of the AI's severity hint.
+    Combine deterministic safety rules with the AI severity hint.
 
-    Rules (checked in order):
-    1. If ai_severity_hint is 4 -> always return 4, no exceptions.
-    2. If the user has been unresponsive for more than ~10 seconds
-       (minutes_since_last_response > 0.17) AND this event is a "trigger"
-       -> force severity to at least 3, even if the AI hint was lower.
-    3. Otherwise -> return the AI's severity hint as-is.
+    Priority:
+    1. Critical hardcoded answer -> 4
+    2. AI says 4 -> 4
+    3. Hardcoded safety severity
+    4. AI severity
     """
+
+    # Hardcoded safety rules can always force the severity upward.
+    if hardcoded_severity >= 4:
+        return 4
+
+    # AI can identify a critical situation too.
     if ai_severity_hint == 4:
         return 4
 
-    if minutes_since_last_response > UNRESPONSIVE_THRESHOLD_MINUTES and event_type == "trigger":
-        return max(ai_severity_hint, 3)
-
-    return ai_severity_hint
+    # Otherwise use the highest severity found.
+    return max(
+        hardcoded_severity,
+        ai_severity_hint,
+    )

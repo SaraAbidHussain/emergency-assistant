@@ -11,6 +11,7 @@ import 'auth_screen.dart';
 import 'emergency_active_screen.dart';
 import 'level1_screen.dart';
 import 'level2_screen.dart';
+import 'emergency_assessment_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final UserModel currentUser;
@@ -77,52 +78,17 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _handleTrigger() async {
-    final result = await EmergencyService.triggerEmergency(
-      userId: widget.currentUser.phoneNumber,
-      description: _pendingDescription,
-    );
+  void _handleTrigger() {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => EmergencyAssessmentScreen(
+        userId: widget.currentUser.phoneNumber,
+      ),
+    ),
+  );
 
-    if (!mounted) return;
-
-    final level = result['level_label'] as String? ?? '';
-    final Widget destination;
-
-    switch (level) {
-      case 'minor':
-        destination = Level1Screen(
-          initialSeverity: result['current_severity'] as int,
-          userId: widget.currentUser.phoneNumber,
-          initialData: result,
-          onUserSafe: () => Navigator.of(context).pop(),
-        );
-        break;
-      case 'moderate':
-        destination = Level2Screen(
-          initialSeverity: result['current_severity'] as int,
-          userId: widget.currentUser.phoneNumber,
-          initialData: result,
-          onUserSafe: () => Navigator.of(context).pop(),
-        );
-        break;
-      case 'serious':
-      case 'critical':
-      default:
-        destination = EmergencyActiveScreen(
-          initialSeverity: result['current_severity'] as int,
-          userId: widget.currentUser.phoneNumber,
-          initialData: result,
-          onUserSafe: () => Navigator.of(context).pop(),
-        );
-        break;
-    }
-
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => destination),
-    );
-
-    _pendingDescription = 'Emergency SOS activated';
-  }
+  _pendingDescription = 'Emergency SOS activated';
+}
 
   Future<void> _toggleVoiceMode(bool enabled) async {
     setState(() {

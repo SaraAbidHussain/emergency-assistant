@@ -21,8 +21,10 @@ from app.services.hospitals import find_nearby_hospitals
 from app.services.level_actions import get_level_actions
 from app.services.location_service import resolve_location
 from app.services.notifications import notify_trusted_contacts
-from app.services.safety_rule_engine import decide_severity
-
+from app.services.safety_rule_engine import (
+    decide_severity,
+    severity_from_answers,
+)
 
 def classify_emergency(request: ClassifyRequest) -> ClassifyResponse:
     """
@@ -73,16 +75,24 @@ def record_event(request: EventRequest) -> EventResponse:
 
     description = request.payload.get("description", "").strip()
 
+    assessment_answers = request.payload.get(
+        "assessment_answers",
+        {},
+    )
+
+    if not isinstance(assessment_answers, dict):
+        assessment_answers = {}
+
+    hardcoded_severity = severity_from_answers(
+        assessment_answers
+    )
+
     if description:
         classification = ai_service.classify_emergency(description)
         ai_severity_hint = classification["severity_hint"]
         ai_emergency_type = classification.get("emergency_type")
     else:
-        # No description in this event — don't call the AI on an empty
-        # string, and don't let type/severity regress. Keep them as-is;
-        # the rule engine below can still raise severity (e.g. unresponsive
-        # trigger override) even without a fresh AI hint.
-        ai_severity_hint = session.severity
+        ai_severity_hint = 1
         ai_emergency_type = None
 
     if session.last_response_at is None:
@@ -92,10 +102,11 @@ def record_event(request: EventRequest) -> EventResponse:
         minutes_since_last_response = elapsed_seconds / 60.0
 
     final_severity = decide_severity(
-        ai_severity_hint=ai_severity_hint,
-        minutes_since_last_response=minutes_since_last_response,
-        event_type=request.type,
-    )
+    ai_severity_hint=ai_severity_hint,
+    minutes_since_last_response=minutes_since_last_response,
+    event_type=request.type,
+    hardcoded_severity=hardcoded_severity,
+)
 
     session.severity = final_severity
     session.active = True
@@ -220,7 +231,7 @@ def escalate_emergency(user_id: str, request: EscalateRequest) -> EscalateRespon
     but returns real contact ids from app.main.trusted_contacts).
     """
     session = session_store.get_or_create_session(user_id)
-    session.severity = max(session.severity, 3)
+    session.severity = max(session.severity, 4)
     session.status = "responding"
     session.timeline.append(
         TimelineEntry(
