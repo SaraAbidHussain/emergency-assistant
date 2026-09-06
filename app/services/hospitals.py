@@ -7,9 +7,9 @@ import requests
 
 
 MOCK_HELP = [
-    {"name": "City General Hospital", "distance": 1.2, "address": "12 Civic Ave"},
-    {"name": "Greenview Clinic", "distance": 2.4, "address": "45 Park Rd"},
-    {"name": "Northside Medical Center", "distance": 3.7, "address": "88 River St"},
+    {"name": "City General Hospital", "distance": 1.2, "address": "12 Civic Ave", "lat": 31.5304, "lng": 74.3487},
+    {"name": "Greenview Clinic", "distance": 2.4, "address": "45 Park Rd", "lat": 31.5404, "lng": 74.3387},
+    {"name": "Northside Medical Center", "distance": 3.7, "address": "88 River St", "lat": 31.5504, "lng": 74.3287},
 ]
 
 
@@ -76,6 +76,8 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
                 "name": name,
                 "distance": round(distance_km, 2),
                 "address": address,
+                "lat": lat_value,
+                "lng": lon_value,
             })
 
         if not results:

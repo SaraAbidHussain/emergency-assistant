@@ -182,5 +182,27 @@
     "location": null,
     "timeline": [],
     "last_response_at": null
+  },
+  "hosp-latlng-test": {
+    "user_id": "hosp-latlng-test",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T12:01:27.032028Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-06T12:01:27.185195Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
   }
 }
