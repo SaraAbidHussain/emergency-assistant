@@ -61,7 +61,7 @@ class _EmergencyAssistantAppState extends State<EmergencyAssistantApp> {
 
       final idToken = await currentUser.getIdToken();
       final response = await http.post(
-        Uri.parse('http://192.168.18.23:8000/devices/register'),
+        Uri.parse('http://10.190.253.201:8000/devices/register'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $idToken',

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'auth_header_service.dart';
 
 class EmergencyService {
-  static const String _baseUrl = 'http://192.168.18.23:8000';
+  static const String _baseUrl = 'http://10.190.253.201:8000';
 
   static Map<String, dynamic> _parseEmergencyResponse(
     Map<String, dynamic> data,
@@ -49,7 +49,7 @@ class EmergencyService {
     required String bloodGroup,
     required DateTime dob,
   }) async {
-    final uri = Uri.parse('$_baseUrl/profile');
+    final uri = Uri.parse('$_baseUrl/users/profile');
 
     final authHeader = await AuthHeaderService.getAuthHeader();
     if (authHeader.isEmpty) {
@@ -64,7 +64,7 @@ class EmergencyService {
       },
       body: jsonEncode({
         'name': name,
-        'phone': phone,
+        'phone_number': phone,
         'blood_group': bloodGroup,
         'dob': dob.toIso8601String().split('T').first,
       }),
@@ -80,7 +80,7 @@ class EmergencyService {
   }
 
   static Future<Map<String, dynamic>> getProfile() async {
-    final uri = Uri.parse('$_baseUrl/profile');
+    final uri = Uri.parse('$_baseUrl/users/profile/me');
 
     final authHeader = await AuthHeaderService.getAuthHeader();
     if (authHeader.isEmpty) {

@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
+import 'home_screen.dart';
 import 'profile_setup_screen.dart';
+import '../models/user_model.dart';
+import '../services/emergency_service.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -76,15 +78,49 @@ class _AuthScreenState extends State<AuthScreen> {
             builder: (_) => const ProfileSetupScreen(),
           ),
         );
-      } else {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-      }
+      } 
+      else {
+  await FirebaseAuth.instance.signInWithEmailAndPassword(
+    email: email,
+    password: password,
+  );
+
+  if (!mounted) return;
+
+  try {
+    final profile = await EmergencyService.getProfile();
+
+    final currentUser = UserModel(
+      fullName: profile['name']?.toString() ?? '',
+      phoneNumber: profile['phone_number']?.toString() ?? '',
+      dateOfBirth: profile['dob']?.toString() ?? '',
+      bloodGroup: profile['blood_group']?.toString() ?? '',
+      homeAddress: '',
+      passwordHash: '',
+    );
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => HomeScreen(
+          currentUser: currentUser,
+        ),
+      ),
+    );
+  } catch (e) {
+    setState(() {
+      _errorMessage =
+          'Login successful, but profile could not be loaded. $e';
+    });
+  }
+}
     } on FirebaseAuthException catch (e) {
+      print('FIREBASE ERROR CODE: ${e.code}');
+      print('FIREBASE ERROR MESSAGE: ${e.message}');
+
       setState(() {
-        _errorMessage = _firebaseMessage(e.code);
+        _errorMessage = '${e.code}: ${e.message}';
       });
     } catch (_) {
       setState(() {

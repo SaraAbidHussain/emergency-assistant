@@ -214,5 +214,55 @@
     "location": null,
     "timeline": [],
     "last_response_at": null
+  },
+  "olnwjGnpJVdD8w871agMfd0OmRo1": {
+    "user_id": "olnwjGnpJVdD8w871agMfd0OmRo1",
+    "active": false,
+    "severity": 1,
+    "type": "personal_safety",
+    "status": "resolved",
+    "location": null,
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T15:50:18.172764Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:59:14.969546Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:59:27.493518Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-05T20:59:31.771099Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T20:58:54.178802Z",
+        "event": "resolved: user marked safe"
+      }
+    ],
+    "last_response_at": "2026-09-06T20:58:54.178789Z"
+  },
+  "03280335221": {
+    "user_id": "03280335221",
+    "active": false,
+    "severity": 1,
+    "type": "personal_safety",
+    "status": "resolved",
+    "location": null,
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T21:56:24.015995Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T21:56:30.522697Z",
+        "event": "resolved: user marked safe"
+      }
+    ],
+    "last_response_at": "2026-09-06T21:56:30.522686Z"
   }
 }
