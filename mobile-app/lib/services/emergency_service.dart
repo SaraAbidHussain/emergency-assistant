@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_header_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class EmergencyService {
-  static const String _baseUrl = 'http://192.168.0.111:8000';
+  static const String _baseUrl = 'http://10.120.229.201:8000';
 
   static Map<String, dynamic> _parseEmergencyResponse(
     Map<String, dynamic> data,
@@ -79,6 +80,74 @@ class EmergencyService {
     throw Exception('Backend error ${response.statusCode}: ${response.body}');
   }
 
+  static Future<Map<String, dynamic>> updateCurrentLocation({
+  required String userId,
+}) async {
+  final serviceEnabled =
+      await Geolocator.isLocationServiceEnabled();
+
+  if (!serviceEnabled) {
+    throw Exception('Location services are disabled.');
+  }
+
+  LocationPermission permission =
+      await Geolocator.checkPermission();
+
+  if (permission == LocationPermission.denied) {
+    permission =
+        await Geolocator.requestPermission();
+  }
+
+  if (permission == LocationPermission.denied ||
+      permission == LocationPermission.deniedForever) {
+    throw Exception('Location permission denied.');
+  }
+
+  final position =
+      await Geolocator.getCurrentPosition(
+    locationSettings:
+        const LocationSettings(
+      accuracy: LocationAccuracy.high,
+    ),
+  );
+
+  final uri = Uri.parse(
+    '$_baseUrl/emergency/event',
+  );
+
+  final authHeader =
+      await AuthHeaderService.getAuthHeader();
+
+  final response = await http.post(
+    uri,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeader,
+    },
+    body: jsonEncode({
+  'user_id': userId,
+  'type': 'location_update',
+  'payload': {
+    'lat': position.latitude,
+    'lng': position.longitude,
+    'share_location': true,
+  },
+}),
+  );
+
+  if (response.statusCode == 200) {
+    return _parseEmergencyResponse(
+      jsonDecode(response.body)
+          as Map<String, dynamic>,
+    );
+  }
+
+  throw Exception(
+    'Location update failed: '
+    '${response.statusCode}: ${response.body}',
+  );
+}
+
   static Future<Map<String, dynamic>> getProfile() async {
     final uri = Uri.parse('$_baseUrl/users/profile/me');
 
@@ -104,39 +173,72 @@ class EmergencyService {
     throw Exception('Backend error ${response.statusCode}: ${response.body}');
   }
 
-  static Future<Map<String, dynamic>> triggerEmergency({
-    required String userId,
-    String description = 'Emergency SOS activated',
-  }) async {
-    final uri = Uri.parse('$_baseUrl/emergency/event');
+static Future<Map<String, dynamic>> triggerEmergency({
+  required String userId,
+  String description = 'Emergency SOS activated',
+}) async {
+  final uri = Uri.parse('$_baseUrl/emergency/event');
 
+  try {
+    // Try to get current location, but don't block the SOS if it fails
+    double? lat;
+    double? lng;
     try {
-      final authHeader = await AuthHeaderService.getAuthHeader();
-      final response = await http.post(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader,
-        },
-        body: jsonEncode({
-          'user_id': userId,
-          'type': 'trigger',
-          'payload': {'description': description},
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        return _parseEmergencyResponse(
-          jsonDecode(response.body) as Map<String, dynamic>,
-        );
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse) {
+          final position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              timeLimit: Duration(seconds: 5),
+            ),
+          );
+          lat = position.latitude;
+          lng = position.longitude;
+        }
       }
-
-      throw Exception('Backend error ${response.statusCode}: ${response.body}');
-    } catch (e) {
-      print('triggerEmergency failed, using fallback: $e');
-      return _emergencyFallback(currentSeverity: 2);
+    } catch (locErr) {
+      print('Could not get location for trigger: $locErr');
+      // proceed without location — SOS should never be blocked by GPS failure
     }
+
+    final authHeader = await AuthHeaderService.getAuthHeader();
+    final payload = <String, dynamic>{
+      'description': description,
+      if (lat != null && lng != null) 'lat': lat,
+      if (lat != null && lng != null) 'lng': lng,
+    };
+
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeader,
+      },
+      body: jsonEncode({
+        'user_id': userId,
+        'type': 'trigger',
+        'payload': payload,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return _parseEmergencyResponse(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+    }
+
+    throw Exception('Backend error ${response.statusCode}: ${response.body}');
+  } catch (e) {
+    print('triggerEmergency failed, using fallback: $e');
+    return _emergencyFallback(currentSeverity: 2);
   }
+}
   static Future<Map<String, dynamic>> submitAssessment({
   required String userId,
   required String description,
