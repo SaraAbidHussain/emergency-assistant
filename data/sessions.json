@@ -1,0 +1,517 @@
+{
+  "test-1": {
+    "user_id": "test-1",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:20:45.555143Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:21:04.619397Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:21:20.650110Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:21:44.584900Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-2": {
+    "user_id": "test-2",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:40:06.811519Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:40:32.161489Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:41:06.075610Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:41:28.071627Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-3": {
+    "user_id": "test-3",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:47:01.768696Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:48:05.386572Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-4": {
+    "user_id": "test-4",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:50:24.565138Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:50:24.746908Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-5": {
+    "user_id": "test-5",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:54:06.645832Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:54:07.965025Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "test-6": {
+    "user_id": "test-6",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.472188,
+      "lng": 74.341199
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T20:56:28.709810Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T20:56:28.960047Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T21:09:45.819035Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-05T21:10:19.695068Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "user-123": {
+    "user_id": "user-123",
+    "active": true,
+    "severity": 3,
+    "type": "unknown",
+    "status": "responding",
+    "location": {
+      "lat": 24.86,
+      "lng": 67.0
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-05T21:37:58.009762Z",
+        "event": "escalated: Emergency detected"
+      }
+    ],
+    "last_response_at": null
+  },
+  "chat-test-1": {
+    "user_id": "chat-test-1",
+    "active": true,
+    "severity": 1,
+    "type": "unknown",
+    "status": "responding",
+    "location": null,
+    "timeline": [],
+    "last_response_at": null
+  },
+  "hosp-latlng-test": {
+    "user_id": "hosp-latlng-test",
+    "active": true,
+    "severity": 4,
+    "type": "injury",
+    "status": "responding",
+    "location": {
+      "lat": 31.5204,
+      "lng": 74.3587
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T12:01:27.032028Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-06T12:01:27.185195Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:41:58.492851Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T14:42:00.630435Z",
+        "event": "trigger received"
+      }
+    ],
+    "last_response_at": null
+  },
+  "chat-debug-1": {
+    "user_id": "chat-debug-1",
+    "active": true,
+    "severity": 1,
+    "type": "unknown",
+    "status": "responding",
+    "location": null,
+    "timeline": [],
+    "last_response_at": null
+  },
+  "olnwjGnpJVdD8w871agMfd0OmRo1": {
+    "user_id": "olnwjGnpJVdD8w871agMfd0OmRo1",
+    "active": false,
+    "severity": 1,
+    "type": "personal_safety",
+    "status": "resolved",
+    "location": null,
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T15:50:18.172764Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:59:14.969546Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-05T20:59:27.493518Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-05T20:59:31.771099Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T20:58:54.178802Z",
+        "event": "resolved: user marked safe"
+      }
+    ],
+    "last_response_at": "2026-09-06T20:58:54.178789Z"
+  },
+  "03280335221": {
+    "user_id": "03280335221",
+    "active": true,
+    "severity": 1,
+    "type": "injury",
+    "status": "resolved",
+    "location": {
+      "lat": 31.5350253,
+      "lng": 74.4531133
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T21:56:24.015995Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T21:56:30.522697Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T14:11:09.385485Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:11:18.615456Z",
+        "event": "location_update received"
+      }
+    ],
+    "last_response_at": "2026-09-06T21:56:30.522686Z"
+  },
+  "l2715ENXIGWXSEwQcTywSQnynhR2": {
+    "user_id": "l2715ENXIGWXSEwQcTywSQnynhR2",
+    "active": false,
+    "severity": 1,
+    "type": "injury",
+    "status": "resolved",
+    "location": {
+      "lat": 31.5347971,
+      "lng": 74.4535802
+    },
+    "timeline": [
+      {
+        "timestamp": "2026-09-06T22:51:01.423749Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T22:51:29.501159Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:51:39.653778Z",
+        "event": "escalated: No response within 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:08.219999Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:11.105053Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:11.918573Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:52:32.682231Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:12.910398Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:13.975900Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:14.802087Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T22:53:15.464799Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:01:49.649535Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:01:55.959379Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:06.650007Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:34.873313Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:39.376408Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:53.583902Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:02:56.068267Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:06.980726Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:08.304415Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:20.817155Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:40.743314Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-06T23:03:48.766080Z",
+        "event": "answer received"
+      },
+      {
+        "timestamp": "2026-09-06T23:04:02.879327Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T13:38:44.950988Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T13:38:47.085494Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T13:38:57.237439Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T13:38:59.925439Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T13:39:11.579823Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T13:39:24.321682Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T13:39:34.441629Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T13:39:46.995040Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T13:41:03.764696Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T13:41:51.471188Z",
+        "event": "escalated: No response during emergency assessment for 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-07T13:42:02.570153Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T13:42:36.813642Z",
+        "event": "escalated: User requested emergency escalation"
+      },
+      {
+        "timestamp": "2026-09-07T13:42:43.061835Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T13:47:32.630217Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:15:12.018118Z",
+        "event": "escalated: No response during emergency assessment for 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-07T14:15:18.876134Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T14:15:30.901947Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:15:48.538602Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T14:18:44.656329Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:19:08.452868Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T14:19:49.516979Z",
+        "event": "escalated: User requested emergency escalation"
+      },
+      {
+        "timestamp": "2026-09-07T14:19:58.089835Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T14:21:02.402384Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:21:09.401665Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T14:26:43.877886Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:27:08.217415Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T14:27:16.734515Z",
+        "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T14:34:01.705216Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:44:58.356105Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T14:45:37.718306Z",
+        "event": "resolved: user marked safe"
+      }
+    ],
+    "last_response_at": "2026-09-07T14:45:37.718034Z"
+  }
+}

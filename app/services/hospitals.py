@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import math
 from typing import Any
+from urllib import response
 
 import requests
 
 
 MOCK_HELP = [
-    {"name": "City General Hospital", "distance": 1.2, "address": "12 Civic Ave"},
-    {"name": "Greenview Clinic", "distance": 2.4, "address": "45 Park Rd"},
-    {"name": "Northside Medical Center", "distance": 3.7, "address": "88 River St"},
+    {"name": "City General Hospital", "distance": 1.2, "address": "12 Civic Ave", "lat": 31.5304, "lng": 74.3487},
+    {"name": "Greenview Clinic", "distance": 2.4, "address": "45 Park Rd", "lat": 31.5404, "lng": 74.3387},
+    {"name": "Northside Medical Center", "distance": 3.7, "address": "88 River St", "lat": 31.5504, "lng": 74.3287},
 ]
 
 
@@ -30,9 +31,9 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
     query = f"""
     [out:json][timeout:15];
     (
-      node["amenity"]={amenity}(around:5000,{lat},{lng});
-      way["amenity"]={amenity}(around:5000,{lat},{lng});
-      relation["amenity"]={amenity}(around:5000,{lat},{lng});
+      node["amenity"="{amenity}"](around:5000,{lat},{lng});
+      way["amenity"="{amenity}"](around:5000,{lat},{lng});
+      relation["amenity"="{amenity}"](around:5000,{lat},{lng});
     );
     out body center; 
     >;
@@ -42,8 +43,11 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
         response = requests.post(
             "https://overpass-api.de/api/interpreter",
             data={"data": query},
-            timeout=10,
+            headers={"User-Agent": "EmergencyAssistantApp/1.0 (hackathon-project)"},
+            timeout=20,
         )
+        print("OVERPASS STATUS:", response.status_code)
+        print("OVERPASS RESPONSE:", response.text[:500])
         response.raise_for_status()
         payload = response.json()
         elements = payload.get("elements", [])
@@ -75,13 +79,24 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
                 "name": name,
                 "distance": round(distance_km, 2),
                 "address": address,
+                "lat": lat_value,
+                "lng": lon_value,
             })
 
         if not results:
+            print("REAL API RETURNED NO HOSPITALS")
+            print("Latitude:", lat)
+            print("Longitude:", lng)
+            print("Amenity:", amenity)
+            print("USING MOCK HELP")
             return MOCK_HELP[:3]
+            
 
         results.sort(key=lambda item: item["distance"])
         return results[:3]
 
-    except Exception:
+    except Exception as e:
+        print("OVERPASS API ERROR:", repr(e))
+        print("USING MOCK HELP")
         return MOCK_HELP[:3]
+        
