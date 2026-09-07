@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; 
+import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'models/user_model.dart';
@@ -7,6 +7,7 @@ import 'screens/contacts_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'screens/login_screen.dart';
+import 'responder/entry_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,11 @@ void main() async {
   print(token);
   print('========================');
 
-  await registerDeviceToken(); 
+  // FIX: Do NOT await this. If the backend is unreachable or slow, this
+  // used to block runApp() forever, causing the app to hang on the
+  // Flutter splash screen. Now it runs in the background — app launches
+  // immediately regardless of network state.
+  registerDeviceToken();
 
   runApp(const EmergencyAssistantApp());
 }
@@ -31,14 +36,19 @@ Future<void> registerDeviceToken() async {
       print('Could not get FCM token, skipping registration.');
       return;
     }
-    final response = await http.post(
-      Uri.parse('http://192.168.0.105:8000/contacts/user-123/add'), // 👈 apna IP daalo
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'contact_id': 'phone-1',
-        'device_token': token,
-      }),
-    );
+    final response = await http
+        .post(
+          Uri.parse('http:// 192.168.10.11:8000/contacts/user-123/add'), // 👈 apna IP daalo
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'contact_id': 'phone-1',
+            'device_token': token,
+          }),
+        )
+        // FIX: hard timeout so this can never hang indefinitely, even
+        // if it's ever awaited somewhere else in the future.
+        .timeout(const Duration(seconds: 5));
+
     if (response.statusCode == 200) {
       print('Device token registered successfully.');
     } else {
@@ -61,7 +71,7 @@ class EmergencyAssistantApp extends StatelessWidget {
         primarySwatch: Colors.red,
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const LoginScreen(),
+      home: const EntryScreen(),
     );
   }
 }
