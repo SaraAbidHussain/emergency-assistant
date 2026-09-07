@@ -9,6 +9,7 @@ import 'models/user_model.dart';
 import 'screens/auth_screen.dart';
 import 'screens/contacts_list_screen.dart';
 import 'screens/home_screen.dart';
+import 'services/deep_link_service.dart'; // <-- ADDED
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,11 @@ void main() async {
   print('=== FCM DEVICE TOKEN ===');
   print(token);
   print('========================');
+
+  // <-- ADDED: wire up FCM-based deep link handling before runApp()
+  await DeepLinkService.instance.init(
+    baseUrl: 'http://192.168.10.11:8000',
+  );
 
   runApp(const EmergencyAssistantApp());
 }
@@ -60,21 +66,17 @@ class _EmergencyAssistantAppState extends State<EmergencyAssistantApp> {
       }
 
       final idToken = await currentUser.getIdToken();
-      final response = await http
-          .post(
-            // TODO: move this base URL into a config file / build flavor
-            // instead of hardcoding an IP address.
-            Uri.parse('http://10.120.229.201:8000/devices/register'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $idToken',
-            },
-            body: jsonEncode({
-              'contact_id': currentUser.uid,
-              'device_token': deviceToken,
-            }),
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await http.post(
+        Uri.parse('http://10.120.229.201:8000/devices/register'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
+        body: jsonEncode({
+          'contact_id': currentUser.uid,
+          'device_token': deviceToken,
+        }),
+      );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         print('Device token registered successfully.');
@@ -89,6 +91,7 @@ class _EmergencyAssistantAppState extends State<EmergencyAssistantApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: DeepLinkService.instance.navigatorKey, // <-- ADDED
       title: 'Emergency Assistant',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
