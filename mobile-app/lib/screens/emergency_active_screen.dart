@@ -718,139 +718,302 @@ return Card(
   }
 
   // ------------------------------------------------------------
-  // LEVEL 4
-  // ------------------------------------------------------------
+// LEVEL 4
+// ------------------------------------------------------------
 
-  Widget _buildLevel4() {
-    return Container(
-      color: Colors.red.shade900,
-      width: double.infinity,
-      height: double.infinity,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
+Widget _buildLevel4() {
+  return Container(
+    color: Colors.red.shade900,
+    width: double.infinity,
+    height: double.infinity,
+    child: SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 10),
+
+            const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.white,
+              size: 60,
+            ),
+
+            const SizedBox(height: 12),
+
+            const Text(
+              'CRITICAL EMERGENCY',
+              textAlign: TextAlign.center,
+              style: TextStyle(
                 color: Colors.white,
-                size: 56,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            const Text(
+              'Emergency assistance has been escalated.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            if (_userMessage != null)
+              Card(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Text(
+                    _userMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
               ),
 
-              const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
+            // ------------------------------------------------
+            // AMBULANCE
+            // ------------------------------------------------
+
+            SizedBox(
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  _callEmergencyNumber('03280335221');
+                },
+                icon: const Icon(
+                  Icons.local_hospital,
+                  size: 28,
+                ),
+                label: const Text(
+                  'CALL AMBULANCE',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red.shade900,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // ------------------------------------------------
+            // POLICE
+            // ------------------------------------------------
+
+            SizedBox(
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  _callEmergencyNumber('03280335221');
+                },
+                icon: const Icon(
+                  Icons.local_police,
+                  size: 28,
+                ),
+                label: const Text(
+                  'CALL POLICE',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red.shade900,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ------------------------------------------------
+            // CONTACTS NOTIFIED
+            // ------------------------------------------------
+
+            if (_contactsNotified.isNotEmpty) ...[
               const Text(
-                'CRITICAL EMERGENCY',
+                'Trusted Contacts Notified',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
+                  fontSize: 19,
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
-              if (_userMessage != null)
-                Text(
-                  _userMessage!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 15,
-                  ),
-                ),
-
-              const Spacer(),
-
-              if (_contactsNotified.isNotEmpty)
-                Text(
-                  'Notified: ${_contactsNotified.join(", ")}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-
-              const SizedBox(height: 20),
-
-              if (_nearbyHelp.isNotEmpty)
-                _buildNearbyHelp(
-                  withCallButton: true,
-                ),
-
-              const SizedBox(height: 24),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _tapIAmSafe,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor:
-                        Colors.red.shade900,
-                    padding:
-                        const EdgeInsets.symmetric(
-                      vertical: 20,
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  child: Text(
-                    _iAmSafeArmed
-                        ? 'TAP AGAIN TO CONFIRM'
-                        : 'I AM SAFE',
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    children: _contactsNotified
+                        .map(
+                          (contact) => ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(
+                              Icons.person,
+                            ),
+                            title: Text(contact),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
               ),
+
+              const SizedBox(height: 20),
             ],
-          ),
+
+            // ------------------------------------------------
+            // NEARBY HOSPITALS
+            // ------------------------------------------------
+
+            const Text(
+              'Nearby Hospitals',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            if (_nearbyHelp.isNotEmpty)
+              _buildNearbyHelp(
+                withCallButton: true,
+              )
+            else
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'No nearby hospitals were found.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 20),
+
+            // ------------------------------------------------
+            // LOCATION
+            // ------------------------------------------------
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed:
+                    _locationShared ? null : _shareLocation,
+                icon: Icon(
+                  _locationShared
+                      ? Icons.check_circle
+                      : Icons.location_on,
+                ),
+                label: Text(
+                  _locationShared
+                      ? 'Location Shared'
+                      : 'Share My Location',
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(
+                    color: Colors.white,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 15,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // ------------------------------------------------
+            // I AM SAFE
+            // ------------------------------------------------
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _tapIAmSafe,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red.shade900,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: Text(
+                  _iAmSafeArmed
+                      ? 'TAP AGAIN TO CONFIRM'
+                      : 'I AM SAFE',
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              _iAmSafeArmed
+                  ? 'Tap again within 5 seconds to confirm you are safe.'
+                  : 'Double tap required to end a critical emergency.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+Future<void> _callEmergencyNumber(String number) async {
+  final uri = Uri(
+    scheme: 'tel',
+    path: number,
+  );
 
-  @override
-  Widget build(BuildContext context) {
-    if (_severity == 4) {
-      return Scaffold(
-        body: _buildLevel4(),
-      );
-    }
+  final ok = await launchUrl(uri);
 
-    Widget content;
-
-    switch (_severity) {
-      case 2:
-        content = _buildLevel2();
-        break;
-
-      case 3:
-        content = _buildLevel3();
-        break;
-
-      case 1:
-      default:
-        content = _buildLevel3();
-        break;
-    }
-
-    return Scaffold(
-      backgroundColor:
-          severityBackground(_severity),
-      appBar: AppBar(
-        title: Text(
-          'Emergency — ${_levelLabel ?? severityLabel(_severity)}',
-        ),
-        backgroundColor:
-            severityColor(_severity),
-        automaticallyImplyLeading: false,
-      ),
-      body: SafeArea(
-        child: content,
+  if (!ok && mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Could not start the call.'),
       ),
     );
   }
