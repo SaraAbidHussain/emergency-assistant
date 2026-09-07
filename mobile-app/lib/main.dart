@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'firebase_options.dart';
 import 'models/user_model.dart';
 import 'screens/auth_screen.dart';
-import 'screens/contacts_screen.dart';
+import 'screens/contacts_list_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
@@ -102,7 +102,7 @@ class _EmergencyAssistantAppState extends State<EmergencyAssistantApp> {
               Future.microtask(_registerCurrentDevice);
             }
 
-            return HomeScreen(currentUser: _userModelFromFirebase(user));
+            return RootScreen(currentUser: _userModelFromFirebase(user));
           }
 
           _hasRegisteredDeviceForCurrentUser = false;
@@ -128,7 +128,7 @@ class _RootScreenState extends State<RootScreen> {
   Widget build(BuildContext context) {
     final screens = [
       HomeScreen(currentUser: widget.currentUser),
-      const ContactsScreen(),
+      const ContactsListScreen(),
     ];
 
     return Scaffold(
