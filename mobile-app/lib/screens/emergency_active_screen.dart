@@ -791,7 +791,7 @@ Widget _buildLevel4() {
               height: 56,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  _callEmergencyNumber('03280335221');
+                  _callEmergencyNumber('1122');
                 },
                 icon: const Icon(
                   Icons.local_hospital,
@@ -824,14 +824,14 @@ Widget _buildLevel4() {
               height: 56,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  _callEmergencyNumber('03280335221');
+                  _callEmergencyNumber('911');
                 },
                 icon: const Icon(
                   Icons.local_police,
                   size: 28,
                 ),
                 label: const Text(
-                  'CALL POLICE',
+                  'CALL EMERGENCY HELPLINE',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
