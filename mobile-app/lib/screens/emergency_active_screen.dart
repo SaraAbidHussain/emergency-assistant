@@ -1018,3 +1018,43 @@ Future<void> _callEmergencyNumber(String number) async {
     );
   }
 }
+  @override
+  Widget build(BuildContext context) {
+    if (_severity == 4) {
+      return Scaffold(
+        body: _buildLevel4(),
+      );
+    }
+
+    Widget content;
+
+    switch (_severity) {
+      case 2:
+        content = _buildLevel2();
+        break;
+
+      case 3:
+        content = _buildLevel3();
+        break;
+
+      case 1:
+      default:
+        content = _buildLevel3();
+        break;
+    }
+
+    return Scaffold(
+      backgroundColor: severityBackground(_severity),
+      appBar: AppBar(
+        title: Text(
+          'Emergency — ${_levelLabel ?? severityLabel(_severity)}',
+        ),
+        backgroundColor: severityColor(_severity),
+        automaticallyImplyLeading: false,
+      ),
+      body: SafeArea(
+        child: content,
+      ),
+    );
+  }
+}
