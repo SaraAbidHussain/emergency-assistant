@@ -19,7 +19,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
 
   bool _isLoading = false;
   bool _isAdding = false;
-  List<String> _results = [];
+  List<Map<String, dynamic>> _results = [];
   Set<String> _addedIds = <String>{};
   String? _errorMessage;
 
@@ -215,18 +215,36 @@ class _AddContactScreenState extends State<AddContactScreen> {
                           itemCount: _results.length,
                           separatorBuilder: (_, __) => const Divider(),
                           itemBuilder: (context, index) {
-                            final userId = _results[index];
-                            final isAdded = _addedIds.contains(userId);
+                            final user = _results[index];
 
-                            return ListTile(
-                              title: Text(userId),
-                              trailing: isAdded
-                                  ? const Icon(Icons.check, color: Colors.green)
-                                  : TextButton(
-                                      onPressed: _isAdding ? null : () => _addContact(userId),
-                                      child: const Text('Add'),
-                                    ),
-                            );
+final userId = user['uid']?.toString() ?? '';
+final name = user['name']?.toString() ?? '';
+final email = user['email']?.toString() ?? '';
+
+final isAdded = _addedIds.contains(userId);
+
+return ListTile(
+  leading: const CircleAvatar(
+    child: Icon(Icons.person),
+  ),
+  title: Text(
+    name.isNotEmpty ? name : 'Unknown User',
+  ),
+  subtitle: Text(
+    email.isNotEmpty ? email : userId,
+  ),
+  trailing: isAdded
+      ? const Icon(
+          Icons.check,
+          color: Colors.green,
+        )
+      : TextButton(
+          onPressed: _isAdding || userId.isEmpty
+              ? null
+              : () => _addContact(userId),
+          child: const Text('Add'),
+        ),
+);
                           },
                         ),
                 ),

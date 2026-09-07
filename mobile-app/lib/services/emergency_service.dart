@@ -362,51 +362,53 @@ static Future<Map<String, dynamic>> triggerEmergency({
     }
   }
 
-  static Future<List<String>> searchUsers({
-    required String query,
-    required String excludeUserId,
-  }) async {
-    final trimmed = query.trim();
-    if (trimmed.isEmpty) {
-      return <String>[];
-    }
+static Future<List<Map<String, dynamic>>> searchUsers({
+  required String query,
+  required String excludeUserId,
+}) async {
+  final trimmed = query.trim();
 
-    final uri = Uri.parse('$_baseUrl/users/search').replace(
-      queryParameters: {
-        'q': trimmed,
-        'exclude': excludeUserId,
-      },
-    );
+  final uri = Uri.parse('$_baseUrl/users/search').replace(
+    queryParameters: {
+      'q': trimmed,
+      'exclude': excludeUserId,
+    },
+  );
 
-    final authHeader = await AuthHeaderService.getAuthHeader();
-    if (authHeader.isEmpty) {
-      throw Exception('No authenticated user available for user search.');
-    }
+  final authHeader = await AuthHeaderService.getAuthHeader();
 
-    final response = await http.get(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeader,
-      },
-    );
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Resolve failed: ${response.statusCode}');
-    }
-
-    final decoded = jsonDecode(response.body);
-    if (decoded is Map<String, dynamic>) {
-      final users = decoded['users'];
-      if (users is List) {
-        return users.map((item) => item.toString()).toList();
-      }
-    }
-    if (decoded is List) {
-      return decoded.map((item) => item.toString()).toList();
-    }
-    return <String>[];
+  if (authHeader.isEmpty) {
+    throw Exception('No authenticated user available for user search.');
   }
+
+  final response = await http.get(
+    uri,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeader,
+    },
+  );
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw Exception(
+      'Search failed: ${response.statusCode}: ${response.body}',
+    );
+  }
+
+  final decoded = jsonDecode(response.body);
+
+  if (decoded is Map<String, dynamic>) {
+    final users = decoded['users'];
+
+    if (users is List) {
+      return users
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    }
+  }
+
+  return <Map<String, dynamic>>[];
+}
 
   static Future<Map<String, dynamic>> sendChatMessage({
     required String userId,
@@ -444,45 +446,51 @@ static Future<Map<String, dynamic>> triggerEmergency({
     }
   }
 
-  static Future<List<String>> browseUsers({
-    required String excludeUserId,
-  }) async {
-    final uri = Uri.parse('$_baseUrl/users').replace(
-      queryParameters: {
-        'exclude': excludeUserId,
-      },
+  static Future<List<Map<String, dynamic>>> browseUsers({
+  required String excludeUserId,
+}) async {
+  final uri = Uri.parse('$_baseUrl/users').replace(
+    queryParameters: {
+      'exclude': excludeUserId,
+    },
+  );
+
+  final authHeader = await AuthHeaderService.getAuthHeader();
+
+  if (authHeader.isEmpty) {
+    throw Exception(
+      'No authenticated user available for browsing users.',
     );
-
-    final authHeader = await AuthHeaderService.getAuthHeader();
-    if (authHeader.isEmpty) {
-      throw Exception('No authenticated user available for browsing users.');
-    }
-
-    final response = await http.get(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeader,
-      },
-    );
-
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Backend error ${response.statusCode}: ${response.body}');
-    }
-
-    final decoded = jsonDecode(response.body);
-    if (decoded is Map<String, dynamic>) {
-      final users = decoded['users'];
-      if (users is List) {
-        return users.map((item) => item.toString()).toList();
-      }
-    }
-    if (decoded is List) {
-      return decoded.map((item) => item.toString()).toList();
-    }
-    return <String>[];
   }
 
+  final response = await http.get(
+    uri,
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeader,
+    },
+  );
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw Exception(
+      'Backend error ${response.statusCode}: ${response.body}',
+    );
+  }
+
+  final decoded = jsonDecode(response.body);
+
+  if (decoded is Map<String, dynamic>) {
+    final users = decoded['users'];
+
+    if (users is List) {
+      return users
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
+    }
+  }
+
+  return <Map<String, dynamic>>[];
+}
   static Future<Map<String, dynamic>> addContact({
     required String myUserId,
     required String contactId,

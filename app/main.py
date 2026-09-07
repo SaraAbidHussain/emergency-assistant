@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from app.services import auth_service
 from collections import defaultdict
 from typing import Any
 
@@ -120,29 +120,56 @@ async def register_device(payload: DeviceRegisterRequest) -> dict[str, str]:
 
 @app.get("/users")
 async def list_users(exclude: str | None = None) -> dict[str, Any]:
-    """
-    Every identifier that has called POST /devices/register is, by
-    definition, a real reachable user — so device_tokens.keys() doubles as
-    the user directory without needing a separate store. `exclude` lets the
-    caller hide their own identifier from the browse list.
-    """
-    usernames = [u for u in device_tokens.keys() if u != exclude]
-    return {"users": usernames}
+    users_list = []
+
+    for uid, profile in auth_service._profiles.items():
+        if uid == exclude:
+            continue
+
+        if uid not in device_tokens:
+            continue
+
+        users_list.append({
+            "uid": uid,
+            "name": profile.get("name", ""),
+            "email": profile.get("email", ""),
+        })
+
+    return {"users": users_list}
 
 
 @app.get("/users/search")
-async def search_users(q: str = "", exclude: str | None = None) -> dict[str, Any]:
-    """
-    Case-insensitive substring search over registered usernames, so the
-    app can offer a "search and add" UI. Add the matched username as a
-    trusted contact via the existing POST /contacts/{user_id}/add.
-    """
+async def search_users(
+    q: str = "",
+    exclude: str | None = None,
+) -> dict[str, Any]:
+
     query = q.strip().lower()
-    matches = [
-        u for u in device_tokens.keys()
-        if u != exclude and (query == "" or query in u.lower())
-    ]
-    return {"users": matches}
+    users_list = []
+
+    for uid, profile in auth_service._profiles.items():
+        if uid == exclude:
+            continue
+
+        if uid not in device_tokens:
+            continue
+
+        name = profile.get("name", "")
+        email = profile.get("email", "")
+
+        if (
+            query == ""
+            or query in uid.lower()
+            or query in name.lower()
+            or query in email.lower()
+        ):
+            users_list.append({
+                "uid": uid,
+                "name": name,
+                "email": email,
+            })
+
+    return {"users": users_list}
 
 
 @app.websocket("/ws/location/{user_id}")
