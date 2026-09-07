@@ -26,7 +26,7 @@ void main() async {
 
   // <-- ADDED: wire up FCM-based deep link handling before runApp()
   await DeepLinkService.instance.init(
-    baseUrl: 'http://10.120.229.201:8000',
+    baseUrl: 'https://emergency-assistant-production.up.railway.app',
   );
 
   runApp(const EmergencyAssistantApp());

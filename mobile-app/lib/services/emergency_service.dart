@@ -4,7 +4,7 @@ import 'auth_header_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 class EmergencyService {
-  static const String _baseUrl = 'http://10.120.229.201:8000';
+  static const String _baseUrl = 'https://emergency-assistant-production.up.railway.app';
 
   static Map<String, dynamic> _parseEmergencyResponse(
     Map<String, dynamic> data,
