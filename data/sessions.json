@@ -256,7 +256,7 @@
   },
   "03280335221": {
     "user_id": "03280335221",
-    "active": true,
+    "active": false,
     "severity": 1,
     "type": "injury",
     "status": "resolved",
@@ -280,14 +280,70 @@
       {
         "timestamp": "2026-09-07T14:11:18.615456Z",
         "event": "location_update received"
+      },
+      {
+        "timestamp": "2026-09-07T16:37:30.888854Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T16:37:49.940126Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T16:38:55.026790Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T16:39:09.223489Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T16:39:23.959823Z",
+        "event": "escalated: No response during emergency assessment for 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-07T16:39:32.354454Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T16:39:55.234576Z",
+        "event": "escalated: No response during emergency assessment for 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-07T16:39:57.835910Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T16:40:10.760632Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T16:40:54.197146Z",
+        "event": "escalated: No response during emergency assessment for 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-07T16:41:09.514800Z",
+        "event": "escalated: No response during emergency assessment for 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-07T16:41:20.492729Z",
+        "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T16:41:38.035707Z",
+        "event": "escalated: No response during emergency assessment for 10 seconds"
+      },
+      {
+        "timestamp": "2026-09-07T16:48:27.101111Z",
+        "event": "resolved: user marked safe"
       }
     ],
-    "last_response_at": "2026-09-06T21:56:30.522686Z"
+    "last_response_at": "2026-09-07T16:48:27.101100Z"
   },
   "l2715ENXIGWXSEwQcTywSQnynhR2": {
     "user_id": "l2715ENXIGWXSEwQcTywSQnynhR2",
-    "active": false,
-    "severity": 1,
+    "active": true,
+    "severity": 4,
     "type": "injury",
     "status": "resolved",
     "location": {
@@ -510,6 +566,14 @@
       {
         "timestamp": "2026-09-07T14:45:37.718306Z",
         "event": "resolved: user marked safe"
+      },
+      {
+        "timestamp": "2026-09-07T16:35:34.618493Z",
+        "event": "trigger received"
+      },
+      {
+        "timestamp": "2026-09-07T16:36:35.280862Z",
+        "event": "trigger received"
       }
     ],
     "last_response_at": "2026-09-07T14:45:37.718034Z"

@@ -113,6 +113,12 @@ class _EmergencyAssessmentScreenState
       }
     });
   }
+  void _userStartedTyping() {
+  if (_escalated || _submitting) return;
+
+  // User is actively responding, so do not auto-escalate.
+  _timer?.cancel();
+}
 
   Future<void> _autoEscalate() async {
     if (_escalated || _submitting) return;
@@ -401,8 +407,11 @@ class _EmergencyAssessmentScreenState
                     const SizedBox(height: 10),
 
                     TextField(
-                      controller: _descriptionController,
-                      maxLines: 5,
+                    controller: _descriptionController,
+                    maxLines: 5,
+                    onChanged: (_) {
+                      _userStartedTyping();
+                    },
                       decoration: InputDecoration(
                         hintText:
                             'Example: I fell from the stairs and my leg is bleeding badly.',
