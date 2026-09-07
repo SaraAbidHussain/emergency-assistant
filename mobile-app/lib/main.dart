@@ -9,6 +9,7 @@ import 'models/user_model.dart';
 import 'screens/auth_screen.dart';
 import 'screens/contacts_list_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/role_picker_screen.dart';
 import 'services/deep_link_service.dart'; // <-- ADDED
 
 void main() async {
@@ -109,7 +110,7 @@ class _EmergencyAssistantAppState extends State<EmergencyAssistantApp> {
               Future.microtask(_registerCurrentDevice);
             }
 
-            return RootScreen(currentUser: _userModelFromFirebase(user));
+            return RolePickerScreen(currentUser: _userModelFromFirebase(user));
           }
 
           _hasRegisteredDeviceForCurrentUser = false;
