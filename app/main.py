@@ -130,10 +130,11 @@ async def list_users(exclude: str | None = None) -> dict[str, Any]:
             continue
 
         users_list.append({
-            "uid": uid,
-            "name": profile.get("name", ""),
-            "email": profile.get("email", ""),
-        })
+        "uid": uid,
+        "name": profile.get("name", ""),
+        "email": profile.get("email", ""),
+        "phone_number": profile.get("phone_number", ""),
+    })
 
     return {"users": users_list}
 
@@ -164,10 +165,11 @@ async def search_users(
             or query in email.lower()
         ):
             users_list.append({
-                "uid": uid,
-                "name": name,
-                "email": email,
-            })
+    "uid": uid,
+    "name": profile.get("name", ""),
+    "email": profile.get("email", ""),
+    "phone_number": profile.get("phone_number", ""),
+})
 
     return {"users": users_list}
 

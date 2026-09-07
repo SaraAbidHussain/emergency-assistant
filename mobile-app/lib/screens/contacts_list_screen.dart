@@ -17,7 +17,7 @@ class ContactsListScreen extends StatefulWidget {
 class _ContactsListScreenState extends State<ContactsListScreen> {
   bool _isLoading = true;
   List<String> _trusted = [];
-  List<String> _allResults = [];
+  List<Map<String, dynamic>> _allResults = [];
   Set<String> _adding = {};
   String? _errorMessage;
 
@@ -218,37 +218,49 @@ class _ContactsListScreenState extends State<ContactsListScreen> {
                             itemCount: _allResults.length,
                             separatorBuilder: (_, __) => const Divider(),
                             itemBuilder: (context, index) {
-                              final uid = _allResults[index];
-                              final alreadyTrusted = _trusted.contains(uid);
-                              final isAdding = _adding.contains(uid);
+                              final user = _allResults[index];
+
+                            final uid = user['uid']?.toString() ?? '';
+                            final name = user['name']?.toString() ?? '';
+                            final email = user['email']?.toString() ?? '';
+                            final phoneNumber = user['phone_number']?.toString() ?? '';
+
+                            final alreadyTrusted = _trusted.contains(uid);
+                            final isAdding = _adding.contains(uid);
 
                               return ListTile(
-                                title: Text(uid),
-                                subtitle: Text(alreadyTrusted ? 'Trusted' : ''),
+                               title: Text(name.isNotEmpty ? name : uid),
+                                subtitle: Text(
+                                  phoneNumber.isNotEmpty
+                                      ? phoneNumber
+                                      : (email.isNotEmpty ? email : 'No phone number'),
+                                ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.message_outlined),
-                                      onPressed: () {
-                                        if (_looksLikePhone(uid)) {
-                                          _smsNumber(uid);
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                              content: Text('No phone number available for this user.')));
-                                        }
-                                      },
-                                    ),
+                                    icon: const Icon(Icons.message_outlined),
+                                    onPressed: phoneNumber.isNotEmpty
+                                        ? () => _smsNumber(phoneNumber)
+                                        : () {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('No phone number available for this user.'),
+                                              ),
+                                            );
+                                          },
+                                  ),
                                     IconButton(
                                       icon: const Icon(Icons.call_outlined),
-                                      onPressed: () {
-                                        if (_looksLikePhone(uid)) {
-                                          _callNumber(uid);
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                              content: Text('No phone number available for this user.')));
-                                        }
-                                      },
+                                      onPressed: phoneNumber.isNotEmpty
+                                          ? () => _callNumber(phoneNumber)
+                                          : () {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('No phone number available for this user.'),
+                                                ),
+                                              );
+                                            },
                                     ),
                                     const SizedBox(width: 8),
                                     if (alreadyTrusted)
