@@ -101,14 +101,20 @@ def record_event(request: EventRequest) -> EventResponse:
         elapsed_seconds = (now - session.last_response_at).total_seconds()
         minutes_since_last_response = elapsed_seconds / 60.0
 
-    final_severity = decide_severity(
-    ai_severity_hint=ai_severity_hint,
-    minutes_since_last_response=minutes_since_last_response,
-    event_type=request.type,
-    hardcoded_severity=hardcoded_severity,
-)
+    # Location updates should NOT change the current emergency severity.
+# They only update the user's location and optionally share it.
+    if request.type == "location_update":
+        final_severity = session.severity
+    else:
+        final_severity = decide_severity(
+            ai_severity_hint=ai_severity_hint,
+            minutes_since_last_response=minutes_since_last_response,
+            event_type=request.type,
+            hardcoded_severity=hardcoded_severity,
+        )
 
     session.severity = final_severity
+
     session.active = True
     # Only overwrite the type when the AI actually classified something
     # this turn — never let a description-less event downgrade a known

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from typing import Any
+from urllib import response
 
 import requests
 
@@ -45,6 +46,8 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
             headers={"User-Agent": "EmergencyAssistantApp/1.0 (hackathon-project)"},
             timeout=20,
         )
+        print("OVERPASS STATUS:", response.status_code)
+        print("OVERPASS RESPONSE:", response.text[:500])
         response.raise_for_status()
         payload = response.json()
         elements = payload.get("elements", [])
@@ -81,10 +84,19 @@ def find_nearby_hospitals(lat: float, lng: float, emergency_type: str) -> list[d
             })
 
         if not results:
+            print("REAL API RETURNED NO HOSPITALS")
+            print("Latitude:", lat)
+            print("Longitude:", lng)
+            print("Amenity:", amenity)
+            print("USING MOCK HELP")
             return MOCK_HELP[:3]
+            
 
         results.sort(key=lambda item: item["distance"])
         return results[:3]
 
-    except Exception:
+    except Exception as e:
+        print("OVERPASS API ERROR:", repr(e))
+        print("USING MOCK HELP")
         return MOCK_HELP[:3]
+        
